@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "WFA_Compression": {
+      "commandName": "Project",
+      "commandLineArgs": "decode C:\\Users\\Viki\\Qsync\\Desktop\\bakalarka\\práca\\img\\panorama_resolution5.wfa h=200"
+    }
+  }
+}
