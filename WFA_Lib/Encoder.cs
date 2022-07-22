@@ -9,9 +9,6 @@ namespace WFA_Lib
 {
     public class Encoder
     {
-        public static Stopwatch sw = new Stopwatch();   //TODO dať preč
-
-
         private static ProgressBar progressBar;
         private static int totalNumOfSubsquaresProcessed;
         private static int totalNumOfSubsquares;

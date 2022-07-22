@@ -3,7 +3,7 @@
 ## Repository Contents
 
 - WFA_Lib - C# library for data structures and algorithms
-- WFA_Convertor - C# application for WFA Convertor
+- WFA_Convertor - C# application WFA_Convertor
 - WFA_Convertor.sln - Visual Studio solution file
 
 ## Installation
@@ -55,25 +55,20 @@ The decoding algorithm generates an image from an input WFA.
 The parameters for decoding an image must bein the following format:
 
 ```
-decode <WFAFile> [newSize]
+decode <WFAFile> [depth]
 ```
 
 where
 
 - keyword `decode` indicates, that you have chosen the decoding mode,
 - `<WFAFile>` is a path to the WFA file. The path can be either absolute or relative to the application's location in the file system,
-- `[newSize]` is an optional parameter. The parameter indicates the width or height of the generated image in pixels. If the parameter is not supplied, the decoder uses the native resolution of the encoded image.
-	The parameter must be in the following format:
+- `[depth]` is an optional parameter. The parameter indicates how deep into the WFA the algorithm goes. If the parameter is not supplied, the decoder uses the native resolution of the encoded image.
 	
-	`w=<value>`  for specifying the width of the decoded image or
-	
-	`h=<value>`  for specifying the new height.
-
-    You cannot specify both, the width and height, at the same time, i. e. the width-height ratio cannot be changed. If both parameters are supplied, the decoder uses only the first parameter entered. The `<value>` of new width or height must be a positive integer number determining the chosen dimension in pixels. If the value has a the wrong format or is negative, the program will write an error message.
+	The parameter must be in the format `d=<value>`. The `<value>` must be a positive integer number determining the chosen depth. If the value has a the wrong format or is negative, the program will write an error message.
 
 For example, a correct input for decoding is
  ```
- decode C:\Users\MyName\Desktop\pictures\garden.wfa w=512
+ decode C:\Users\MyName\Desktop\pictures\garden.wfa d=8
  ```
 
 #### Output

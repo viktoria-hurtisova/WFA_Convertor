@@ -2,7 +2,7 @@
   "profiles": {
     "WFA_Compression": {
       "commandName": "Project",
-      "commandLineArgs": "decode C:\\Users\\Viki\\Qsync\\Desktop\\bakalarka\\práca\\img\\panorama_resolution5.wfa h=200"
+      "commandLineArgs": "decode C:\\Users\\Viki\\Qsync\\Desktop\\bakalarka\\práca\\img\\lena_rectangle.wfa d=7"
     }
   }
 }

@@ -38,13 +38,13 @@ namespace WFA_Lib
         private static ProgressBar progressBar;
         private static int totalNumOfTasks = 0;
         private static int totalNumOfTasksEnded = 0;
-        static public void WFAToImage(string inputWFAFile, string imageName, int width, int height, ProgressBar pB)
+        static public void WFAToImage(string inputWFAFile, string imageName, int depth, ProgressBar pB)
         {
             progressBar = pB;
 
             // loading the wfa from file
             WFA wfaClass = new WFA(inputWFAFile);
-            wfaClass.ChangeResolution(width, height);
+
 
             // intialization for decoding
             List<Matrix> transitionMatrices;
@@ -63,7 +63,8 @@ namespace WFA_Lib
 
             WFAStruct wfa = new WFAStruct(transitionMatrices, initialDist, wfaClass.FinalDistribution);
 
-            Bitmap image = ToImage(wfaClass, wfa);
+            Bitmap image = ToImage(wfaClass, wfa, depth);
+            
 
             image.Save(imageName);
 
@@ -71,11 +72,22 @@ namespace WFA_Lib
 
         }
 
-        private static Bitmap ToImage(WFA wfaClass, WFAStruct wfa)
+        private static Bitmap ToImage(WFA wfaClass, WFAStruct wfa, int depth)
         {
             int maxDim = Math.Max(wfaClass.Resolution.Height, wfaClass.Resolution.Width);
             int power = (int)Math.Ceiling(Math.Log2(maxDim));
-            int length = (int)Math.Ceiling((decimal)power / 2); // depth of the quadtree for one colour component
+            int length;
+            if (depth == 0 || depth >= power)
+            {
+                depth = power;
+                length = (int)Math.Ceiling((decimal)power / 2);
+            }
+            else
+            {
+                length = (int)Math.Ceiling((decimal)depth / 2); // depth of the quadtree for one colour component
+            }
+
+
             totalNumOfTasks = (int)(1 - Math.Pow(4, length)) / (1 - 4) * 4;
 
             // Calculate 
@@ -85,11 +97,19 @@ namespace WFA_Lib
 
             double value1, value2, value3;
             Color color;
-            Color[,] image = new Color[wfaClass.Resolution.Height, wfaClass.Resolution.Width];
 
             var resultC1 = MultiplyMidResults(firstHalfC1, secondHalf, (int)Math.Pow(2, power));
             var resultC2 = MultiplyMidResults(firstHalfC2, secondHalf, (int)Math.Pow(2, power));
             var resultC3 = MultiplyMidResults(firstHalfC3, secondHalf, (int)Math.Pow(2, power));
+
+            if (depth < power)
+            {
+                int difference = power - depth;
+                int ratio = (int)Math.Pow(2, difference);
+                wfaClass.ChangeResolution(ratio);
+            }
+
+            Color[,] image = new Color[wfaClass.Resolution.Height, wfaClass.Resolution.Width];
 
             for (int i = 0; i < wfaClass.Resolution.Height; i++)
             {

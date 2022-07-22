@@ -274,23 +274,13 @@ namespace WFA_Lib
             }
         }
 
-        public void ChangeResolution(int newWidth, int newHeight)
+        public void ChangeResolution(int ratio)
         {
-            double ratio;
-            if (newWidth > 0)
-            {
-                ratio = (double)resolution.Width / newWidth;
-                int height = (int)(resolution.Height / ratio);
+            int width = resolution.Width / ratio;
+            int height = resolution.Height / ratio;
 
-                resolution = new ResolutionStruct(newWidth, height);
-            }
-            else if (newHeight > 0)
-            {
-                ratio = (double)resolution.Height / newHeight;
-                int width = (int)(resolution.Width / ratio);
+            resolution = new ResolutionStruct(width, height);
 
-                resolution = new ResolutionStruct(width, newHeight);
-            }
         }
 
         public List<Matrix> CreateTransitionMatrices()
@@ -479,6 +469,6 @@ namespace WFA_Lib
 
             Decoder.CreateBaseImages(this, matrices);
         }
-        
+
     }
 }

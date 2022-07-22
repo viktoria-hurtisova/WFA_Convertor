@@ -22,7 +22,7 @@ namespace WFA_Lib
         public static Matrix operator *(Matrix matrix1, Matrix matrix2)
         {
             if (matrix1.Width != matrix2.Height)
-                throw new ArgumentException("Matrices are not of appropriet size");    //TODO: message
+                throw new ArgumentException("Matrices are not of appropriet size");
 
             double[,] result = new double[matrix1.Height, matrix2.Width];
             alglib.rmatrixgemm(matrix1.Height, matrix2.Width, matrix1.Width, 1, (double[,])matrix1, 0, 0, 0, (double[,])matrix2, 0, 0, 0, 1, ref result, 0, 0);
@@ -45,7 +45,7 @@ namespace WFA_Lib
         public static Matrix operator +(Matrix matrix1, Matrix matrix2)
         {
             if (matrix1.Height != matrix2.Height || matrix1.Width != matrix2.Width)
-                throw new ArgumentException("Matrices are not of appropriet size");    //TODO: message
+                throw new ArgumentException("Matrices are not of appropriet size");
 
             double[,] result = new double[matrix1.Height, matrix1.Width];
 
@@ -133,7 +133,7 @@ namespace WFA_Lib
         public static Vector operator *(Matrix matrix, Vector vector)
         {
             if (matrix.Width != vector.Height)
-                throw new ArgumentException("Matrix and vector are not in compatibile dimensions"); //TODO message
+                throw new ArgumentException("Matrix and vector are not in compatibile dimensions");
 
             double[] result = new double[matrix.Height];
             alglib.rmatrixgemv(matrix.Height, matrix.Width, 1, (double[,])matrix, 0, 0, 0, (double[])vector, 0, 1, ref result, 0);
@@ -144,7 +144,7 @@ namespace WFA_Lib
         public static Vector operator *(Vector vector, Matrix matrix)
         {
             if (matrix.Height != vector.Height)
-                throw new ArgumentException("Matrix and vector are not in compatibile dimensions"); //TODO message
+                throw new ArgumentException("Matrix and vector are not in compatibile dimensions");
 
             double[] result = new double[matrix.Width];
             alglib.rmatrixgemv(matrix.Height, matrix.Width, 1, (double[,])matrix, 0, 0, 1, (double[])vector, 0, 1, ref result, 0);
@@ -172,7 +172,7 @@ namespace WFA_Lib
         {
             double result = 0;
             if (v1.Height != v2.Height)
-                throw new ArgumentException("Vectors are not in compatibile dimensions"); //TODO message
+                throw new ArgumentException("Vectors are not in compatibile dimensions");
 
             for (int i = 0; i < v1.Height; i++)
             {

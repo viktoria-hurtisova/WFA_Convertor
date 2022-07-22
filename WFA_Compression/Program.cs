@@ -52,53 +52,40 @@ namespace WFA_Convertor
                     } while (File.Exists(imageName));
                 }
 
-                int width = 0;
-                int height = 0;
-                //TODO: bol tam attempt na devide by zero
+                int depth = 0;
+
                 if (args.Length > 2)
                 {
                     string[] newResolution = args[2].Split('=');
-                    if (newResolution[0] == "w")
+                    if (newResolution[0] == "d")
                     {
-                        if (!int.TryParse(newResolution[1], out width))
+                        if (!int.TryParse(newResolution[1], out depth))
                         {
-                            Console.WriteLine($"You entered width in wrong format - it cannot be parsed.");
+                            Console.WriteLine($"You entered depth in wrong format - it cannot be parsed.");
                             return;
                         }
-                        if (width <= 0)
+                        if (depth <= 0)
                         {
-                            Console.WriteLine($"Width must be bigger than zero.");
-                            return;
-                        }
-                    }
-                    else if (newResolution[0] == "h")
-                    {
-                        if (!int.TryParse(newResolution[1], out height))
-                        {
-                            Console.WriteLine($"You entered height in the wrong format - it cannot be parsed.");
-                            return;
-                        }
-                        if (height <= 0)
-                        {
-                            Console.WriteLine($"Height must be bigger than zero.");
+                            Console.WriteLine($"Depth must be bigger than zero.");
                             return;
                         }
                     }
                     else
                     {
-                        Console.WriteLine("Invalid input for resolution");
+                        Console.WriteLine("Invalid input for depth.");
                     }
 
                 }
 
-                var progressBar = new ProgressBar();
                 try
                 {
+                    var progressBar = new ProgressBar();
                     Console.Write("Decoding...   ");
-                    Decoder.WFAToImage(inputWFAFile, imageName, width, height, progressBar);
+                    Decoder.WFAToImage(inputWFAFile, imageName, depth, progressBar);
                     progressBar.Report(1);
                     Thread.Sleep(400);
                     Console.WriteLine("Done");
+
                 }
                 catch (Exception ex)
                 {
@@ -145,7 +132,7 @@ namespace WFA_Convertor
                 try
                 {
                     Console.Write("Encoding...   ");
-                    Encoder.ImageToWFA(inputImage, wfaName, progressBar); //TODO naspat do try catch
+                    Encoder.ImageToWFA(inputImage, wfaName, progressBar);
                     progressBar.Report(1);
                     Thread.Sleep(400);
                     Console.WriteLine("Done");

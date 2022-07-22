@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WFA_Convertor", "WFA_Compre
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WFA_Lib", "WFA_Lib\WFA_Lib.csproj", "{580F64D0-10C0-4B8E-9D00-7FEEA466C6F7}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Installer", "Installer\Installer.vdproj", "{467CC100-784B-4A44-9F0D-9042C1C00930}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,8 @@ Global
 		{580F64D0-10C0-4B8E-9D00-7FEEA466C6F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{580F64D0-10C0-4B8E-9D00-7FEEA466C6F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{580F64D0-10C0-4B8E-9D00-7FEEA466C6F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{467CC100-784B-4A44-9F0D-9042C1C00930}.Debug|Any CPU.ActiveCfg = Debug
+		{467CC100-784B-4A44-9F0D-9042C1C00930}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

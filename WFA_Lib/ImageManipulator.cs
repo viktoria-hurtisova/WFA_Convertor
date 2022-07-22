@@ -6,6 +6,136 @@ namespace WFA_Lib
 {
     static public class ImageManipulator
     {
+        public static Bitmap Shrink(Bitmap inputImage, int newWidth, int newHeight)
+        {
+
+            if (inputImage.Height < newHeight || inputImage.Width < newWidth)
+                throw new ArgumentException($"The image has smaller dimensions than the new input dimensions", "newWidth, newHeight");
+
+            var outputImage = new Bitmap(newWidth, newHeight);
+
+            var rect1 = new Rectangle(0, 0, inputImage.Width, inputImage.Height);
+            var rect2 = new Rectangle(0, 0, outputImage.Width, outputImage.Height);
+
+            var bmpData1 = inputImage.LockBits(rect1, ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+            var bmpData2 = outputImage.LockBits(rect2, ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+
+            IntPtr ptr1 = bmpData1.Scan0;
+            IntPtr ptr2 = bmpData2.Scan0;
+
+            int bytes1 = Math.Abs(bmpData1.Stride) * bmpData1.Height;
+            int bytes2 = Math.Abs(bmpData2.Stride) * bmpData2.Height;
+
+            byte[] rgbValues1 = new byte[bytes1];
+            byte[] rgbValues2 = new byte[bytes2];
+
+            System.Runtime.InteropServices.Marshal.Copy(ptr1, rgbValues1, 0, bytes1);
+
+            int averageBoxWidth = inputImage.Width / newWidth;
+            int averageBoxHeight = inputImage.Height / newHeight;
+            Color averageColor;
+
+            for (int i = 0; i < outputImage.Height; i++)
+            {
+                for (int j = 0; j < bmpData2.Stride; j += 3)
+                {
+                    averageColor = Average(rgbValues1, bmpData1.Stride, averageBoxWidth, averageBoxHeight, i * averageBoxHeight, j * averageBoxWidth);
+                    rgbValues2[i * bmpData2.Stride + j + 2] = averageColor.R;
+                    rgbValues2[i * bmpData2.Stride + j + 1] = averageColor.G;
+                    rgbValues2[i * bmpData2.Stride + j + 0] = averageColor.B;
+                }
+            }
+
+            System.Runtime.InteropServices.Marshal.Copy(rgbValues2, 0, ptr2, bytes2);
+
+            inputImage.UnlockBits(bmpData1);
+            outputImage.UnlockBits(bmpData2);
+
+            return outputImage;
+        }
+
+        private static Color Average(byte[] input, int offset, int width, int height, int x, int y)
+        {
+            int red = 0;
+            int green = 0;
+            int blue = 0;
+
+            for (int i = x; i < x + height; i++)
+            {
+                for (int j = y; j < y + width * 3; j += 3)
+                {
+                    red += input[i * offset + j + 2];
+                    green += input[i * offset + j + 1];
+                    blue += input[i * offset + j + 0];
+                }
+            }
+            red = red / (width * height);
+            green = green / (width * height);
+            blue = blue / (width * height);
+            return Color.FromArgb(red, green, blue);
+        }
+
+        public static Bitmap Enlarge(Bitmap inputImage, int newWidth, int newHeight)
+        {
+
+            if (inputImage.Height > newHeight || inputImage.Width > newWidth)
+            {
+                throw new ArgumentException("The targeted resolution must be bigger than the size of the input image");
+            }
+
+            if (inputImage.Height == newHeight && inputImage.Width == newWidth)
+            {
+                return inputImage;
+            }
+
+            //int diffHeight = newHeight - inputImage.Height;
+            //int diffWidth = newWidth - inputImage.Width;
+
+            int diffHeight = newHeight / inputImage.Height;
+            int diffWidth = newWidth / inputImage.Width;
+
+            Bitmap outputImage = new Bitmap(newWidth, newHeight);
+
+            var rect1 = new Rectangle(0, 0, inputImage.Width, inputImage.Height);
+            var rect2 = new Rectangle(0, 0, outputImage.Width, outputImage.Height);
+
+            var bmpData1 = inputImage.LockBits(rect1, ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+            var bmpData2 = outputImage.LockBits(rect2, ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+
+            IntPtr ptr1 = bmpData1.Scan0;
+            IntPtr ptr2 = bmpData2.Scan0;
+            int bytes1 = Math.Abs(bmpData1.Stride) * bmpData1.Height;
+            int bytes2 = Math.Abs(bmpData2.Stride) * bmpData2.Height;
+            byte[] rgbValues1 = new byte[bytes1];
+            byte[] rgbValues2 = new byte[bytes2];
+
+            System.Runtime.InteropServices.Marshal.Copy(ptr1, rgbValues1, 0, bytes1);
+
+            for (int i = 0; i < inputImage.Height; i++)
+            {
+                for (int j = 0; j < bmpData1.Stride; j += 3)
+                {
+                    for (int k = 0; k < diffHeight; k++)
+                    {
+                        for (int l = 0; l < diffWidth * 3; l += 3)
+                        {
+                            rgbValues2[diffHeight * i * bmpData2.Stride + k * bmpData2.Stride + diffWidth * j + l + 2] = rgbValues1[i * bmpData1.Stride + j + 2];
+                            rgbValues2[diffHeight * i * bmpData2.Stride + k * bmpData2.Stride + diffWidth * j + l + 1] = rgbValues1[i * bmpData1.Stride + j + 1];
+                            rgbValues2[diffHeight * i * bmpData2.Stride + k * bmpData2.Stride + diffWidth * j + l + 0] = rgbValues1[i * bmpData1.Stride + j + 0];
+
+                        }
+                    }
+                }
+            }
+
+            System.Runtime.InteropServices.Marshal.Copy(rgbValues2, 0, ptr2, bytes2);
+
+            inputImage.UnlockBits(bmpData1);
+            outputImage.UnlockBits(bmpData2);
+
+            return outputImage;
+        }
+
         public static double[,] Shrink(double[,] inputImage, int newWidth, int newHeight)
         {
             if (inputImage.GetLength(0) < newWidth || inputImage.GetLength(1) < newHeight)
