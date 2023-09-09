@@ -46,7 +46,7 @@ namespace WFA_Lib
             WFA wfaClass = new WFA(inputWFAFile);
 
 
-            // intialization for decoding
+            // initialization for decoding
             List<Matrix> transitionMatrices;
             try
             {
@@ -88,7 +88,7 @@ namespace WFA_Lib
             }
 
 
-            totalNumOfTasks = (int)(1 - Math.Pow(4, length)) / (1 - 4) * 4;
+            totalNumOfTasks = (int)(3 * Math.Pow(2, power - length) + Math.Pow(2, length) + 4 * Math.Pow(2, power));
 
             // Calculate 
             List<MidResult> firstHalfC1, firstHalfC2, firstHalfC3;
@@ -129,9 +129,11 @@ namespace WFA_Lib
 
 
                     image[i, j] = color;
-                    progressBar.Report(++totalNumOfTasksEnded / totalNumOfTasks);
                 }
             }
+           
+            totalNumOfTasksEnded += (int)Math.Pow(2, power);
+            progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
 
             return ImageManipulator.ArrayToImage(image);
         }
@@ -187,8 +189,6 @@ namespace WFA_Lib
                 if (midRes.Address.Length == length)
                 {
                     result.Add(midRes);
-                    if (totalNumOfTasks > 0)
-                        progressBar.Report(++totalNumOfTasksEnded / totalNumOfTasks);
                 }
                 else
                 {
@@ -200,7 +200,11 @@ namespace WFA_Lib
                     }
                 }
             }
-
+            totalNumOfTasksEnded += (int)Math.Pow(2, length);
+                lock{progressBar}
+                {
+                    progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
+                }
             return result;
         }
 
@@ -233,8 +237,6 @@ namespace WFA_Lib
                 if (midRes.Address.Length == length)
                 {
                     result.Add(midRes);
-                    if (totalNumOfTasks > 0)
-                        progressBar.Report(++totalNumOfTasksEnded / totalNumOfTasks);
                 }
                 else
                 {
@@ -246,7 +248,9 @@ namespace WFA_Lib
                     }
                 }
             }
-
+            totalNumOfTasksEnded += (int)Math.Pow(2, length);
+            progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
+                
             return result;
         }
 
@@ -312,6 +316,14 @@ namespace WFA_Lib
                     image[coor.X, coor.Y] = value;
                 }
             }
+
+            totalNumOfTasksEnded += size;
+            if (totalNumOfTasks > 0)
+                lock{progressBar}
+                {
+                    progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
+                }
+            
             return image;
         }
 
