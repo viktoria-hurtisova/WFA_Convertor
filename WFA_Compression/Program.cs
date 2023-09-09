@@ -1,8 +1,5 @@
 ﻿using System;
 using WFA_Lib;
-using System.Drawing;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
@@ -19,14 +16,6 @@ namespace WFA_Convertor
                 Console.WriteLine("The input file was not found.");
                 return false;
             }
-            if (args[0] == "decode")
-            {
-                var inputWFAFile = args[1];
-                if (!File.Exists(inputWFAFile))
-                {
-                    Console.WriteLine("The input file for loading WFA was not found.");
-                    return;
-                }
 
             string path = Path.GetDirectoryName(input) + Path.DirectorySeparatorChar;
             resultFilePath = path + Path.GetFileNameWithoutExtension(input) + ResultFileSuffix;
@@ -91,7 +80,7 @@ namespace WFA_Convertor
 
         static void Main(string[] args)
         {
-                try
+            
             if (args.Length == 0)
                 {
                 Console.WriteLine("The program needs input parameters.");
@@ -119,7 +108,6 @@ namespace WFA_Convertor
                     progressBar.Report(1);
                     Thread.Sleep(400);
                     Console.WriteLine("Done");
-
                 }
                 catch (Exception ex)
                 {
@@ -131,11 +119,9 @@ namespace WFA_Convertor
             {
                 if (!TryGetResultFilePath(input, ".wfa", out string resultFileName))
                     return;
-                }
 
                 var progressBar = new ProgressBar();
 
-                var progressBar = new ProgressBar();
                 try
                 {
                     Console.WriteLine("Encoding...");
