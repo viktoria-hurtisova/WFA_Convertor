@@ -264,9 +264,11 @@ namespace WFA_Lib
 
         public static Color[,] ToSquare(Bitmap inputImage)
         {
+            // calculate the new size of the image (the closest square of power of 2)
             int maxDim = Math.Max(inputImage.Height, inputImage.Width);
             int power = (int)Math.Ceiling(Math.Log2(maxDim));
             int size = (int)Math.Pow(2, power);
+
             Color[,] output = new Color[size, size];
 
             var rect = new Rectangle(0, 0, inputImage.Width, inputImage.Height);
