@@ -64,7 +64,7 @@ namespace WFA_Lib
             WFAStruct wfa = new WFAStruct(transitionMatrices, initialDist, wfaClass.FinalDistribution);
 
             Bitmap image = ToImage(wfaClass, wfa, depth);
-            
+
 
             image.Save(imageName);
 
@@ -131,7 +131,7 @@ namespace WFA_Lib
                     image[i, j] = color;
                 }
             }
-           
+
             totalNumOfTasksEnded += (int)Math.Pow(2, power);
             progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
 
@@ -201,10 +201,10 @@ namespace WFA_Lib
                 }
             }
             totalNumOfTasksEnded += (int)Math.Pow(2, length);
-                lock{progressBar}
-                {
-                    progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
-                }
+            lock (progressBar)
+            {
+                progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
+            }
             return result;
         }
 
@@ -250,7 +250,7 @@ namespace WFA_Lib
             }
             totalNumOfTasksEnded += (int)Math.Pow(2, length);
             progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
-                
+
             return result;
         }
 
@@ -318,12 +318,11 @@ namespace WFA_Lib
             }
 
             totalNumOfTasksEnded += size;
-            if (totalNumOfTasks > 0)
-                lock{progressBar}
-                {
-                    progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
-                }
-            
+            lock (progressBar)
+            {
+                progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
+            }
+
             return image;
         }
 
