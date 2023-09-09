@@ -108,7 +108,6 @@ namespace WFA_Convertor
                     progressBar.Report(1);
                     Thread.Sleep(400);
                     Console.WriteLine("Done");
-
                 }
                 catch (Exception ex)
                 {
@@ -120,11 +119,9 @@ namespace WFA_Convertor
             {
                 if (!TryGetResultFilePath(input, ".wfa", out string resultFileName))
                     return;
-                }
 
                 var progressBar = new ProgressBar();
 
-                var progressBar = new ProgressBar();
                 try
                 {
                     Console.WriteLine("Encoding...");
