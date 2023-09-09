@@ -10,11 +10,14 @@ namespace WFA_Convertor
 {
     class Program
     {
-        static void Main(string[] args)
+
+        static bool TryGetResultFilePath(string input, string ResultFileSuffix, out string resultFilePath)
         {
-            if (args.Length == 0)
+            resultFilePath = null;
+            if (!File.Exists(input))
             {
-                Console.WriteLine("The program needs input parameters.");
+                Console.WriteLine("The input file was not found.");
+                return false;
             }
             if (args[0] == "decode")
             {
@@ -25,14 +28,14 @@ namespace WFA_Convertor
                     return;
                 }
 
-                string path = Path.GetDirectoryName(inputWFAFile) + Path.DirectorySeparatorChar;
-                string imageName = path + Path.GetFileNameWithoutExtension(inputWFAFile) + ".png";
+            string path = Path.GetDirectoryName(input) + Path.DirectorySeparatorChar;
+            resultFilePath = path + Path.GetFileNameWithoutExtension(input) + ResultFileSuffix;
 
-                if (File.Exists(imageName))
+            if (File.Exists(resultFilePath))
                 {
                     do
                     {
-                        Console.WriteLine($"An image {Path.GetFileName(imageName)} already exists in {path}." +
+                    Console.WriteLine($"The file {Path.GetFileName(resultFilePath)} already exists in {path}." +
                             $" Do you want to replace it? Replacing it will overwrite its contents. (y/n)");
 
                         ConsoleKeyInfo key;
@@ -45,14 +48,19 @@ namespace WFA_Convertor
                         if (key.Key == ConsoleKey.N)
                         {
                             Console.WriteLine("Please enter new file name:");
-                            imageName = path + Console.ReadLine().Trim() + ".png";
+                        resultFilePath = path + Console.ReadLine().Trim() + ".png";
                         }
                         else
                             break;
-                    } while (File.Exists(imageName));
+                } while (File.Exists(resultFilePath));
+            }
+
+            return true;
                 }
 
-                int depth = 0;
+        static bool TryGetAdditionalParametrs(string[] args, out int depth)
+        {
+            depth = 0;
 
                 if (args.Length > 2)
                 {
@@ -62,12 +70,12 @@ namespace WFA_Convertor
                         if (!int.TryParse(newResolution[1], out depth))
                         {
                             Console.WriteLine($"You entered depth in wrong format - it cannot be parsed.");
-                            return;
+                        return false;
                         }
                         if (depth <= 0)
                         {
                             Console.WriteLine($"Depth must be bigger than zero.");
-                            return;
+                        return false;
                         }
                     }
                     else
@@ -77,11 +85,37 @@ namespace WFA_Convertor
 
                 }
 
+            return true;
+        }
+
+
+        static void Main(string[] args)
+        {
+                try
+            if (args.Length == 0)
+                {
+                Console.WriteLine("The program needs input parameters.");
+            }
+
+            string action = args[0];
+            string input = args[1];
+
+
+
+            if (action == "decode")
+            {
+                if (!TryGetResultFilePath(input, ".png", out string resultFileName))
+                    return;
+
+                if (!TryGetAdditionalParametrs(args, out int depth))
+                    return;
+
+                    var progressBar = new ProgressBar();
+
                 try
                 {
-                    var progressBar = new ProgressBar();
-                    Console.Write("Decoding...   ");
-                    Decoder.WFAToImage(inputWFAFile, imageName, depth, progressBar);
+                    Console.WriteLine("Decoding...");
+                    Decoder.WFAToImage(input, resultFileName, depth, progressBar);
                     progressBar.Report(1);
                     Thread.Sleep(400);
                     Console.WriteLine("Done");
@@ -93,46 +127,19 @@ namespace WFA_Convertor
                     return;
                 }
             }
-            else if (args[0] == "encode")
+            else if (action == "encode")
             {
-                var inputImage = args[1];
-                if (!File.Exists(inputImage))
-                {
-                    Console.WriteLine("The input image was not found.");
+                if (!TryGetResultFilePath(input, ".wfa", out string resultFileName))
                     return;
                 }
 
-                string path = Path.GetDirectoryName(inputImage) + Path.DirectorySeparatorChar;
-                string wfaName = path + Path.GetFileNameWithoutExtension(inputImage) + ".wfa";
-                if (File.Exists(wfaName))
-                {
-                    do
-                    {
-                        Console.WriteLine($"The file {Path.GetFileName(wfaName)} already exists in {path}." +
-                            $" Do you want to replace it? Replacing it will overwrite its contents. (y/n)");
-
-                        ConsoleKeyInfo key;
-                        do
-                        {
-                            key = Console.ReadKey();
-                            Console.WriteLine();
-                        } while (key.Key != ConsoleKey.N && key.Key != ConsoleKey.Y);
-
-                        if (key.Key == ConsoleKey.N)
-                        {
-                            Console.WriteLine("Please enter new file name:");
-                            wfaName = path + Console.ReadLine().Trim() + ".wfa";
-                        }
-                        else
-                            break;
-                    } while (File.Exists(wfaName));
-                }
+                var progressBar = new ProgressBar();
 
                 var progressBar = new ProgressBar();
                 try
                 {
-                    Console.Write("Encoding...   ");
-                    Encoder.ImageToWFA(inputImage, wfaName, progressBar);
+                    Console.WriteLine("Encoding...");
+                    Encoder.ImageToWFA(input, resultFileName, progressBar);
                     progressBar.Report(1);
                     Thread.Sleep(400);
                     Console.WriteLine("Done");
@@ -145,7 +152,7 @@ namespace WFA_Convertor
             }
             else
             {
-                Console.WriteLine($"{args[0]} is not a correct command.");
+                Console.WriteLine($"{action} is not a correct command.");
                 return;
             }
         }

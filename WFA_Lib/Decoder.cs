@@ -84,7 +84,8 @@ namespace WFA_Lib
             }
             else
             {
-                length = (int)Math.Ceiling((decimal)depth / 2); // depth of the quadtree for one colour component
+                length = (int)Math.Ceiling((decimal)depth / 2); // the depth of the quadree that will be calculated in the second half,
+                                                                // (power - length) will be calculated in the first half
             }
 
 
