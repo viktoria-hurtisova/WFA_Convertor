@@ -2,6 +2,8 @@
 using System.Drawing;
 using System.Threading;
 using System.Drawing.Imaging;
+using System.Threading.Tasks;
+
 namespace WFA_Lib
 {
     static public class ImageManipulator
@@ -146,14 +148,14 @@ namespace WFA_Lib
             int averageBoxHeight = inputImage.GetLength(0) / newWidth;
             double averageValue;
 
-            for (int i = 0; i < newWidth; i++)
+            Parallel.For(0, newWidth, (index) =>
             {
                 for (int j = 0; j < newHeight; j++)
                 {
-                    averageValue = Average(inputImage, averageBoxWidth, averageBoxHeight, i * averageBoxWidth, j * averageBoxHeight);
-                    newImage[i, j] = averageValue;
+                    averageValue = Average(inputImage, averageBoxWidth, averageBoxHeight, index * averageBoxWidth, j * averageBoxHeight);
+                    newImage[index, j] = averageValue;
                 }
-            }
+            });
             return newImage;
         }
 
@@ -161,13 +163,14 @@ namespace WFA_Lib
         {
             double value = 0;
 
-            for (int i = x; i < x + width; i++)
+            Parallel.For(x, x + width, (index) =>
             {
                 for (int j = y; j < y + height; j++)
                 {
-                    value += inputFile[i, j];
+                    value += inputFile[index, j];
                 }
-            }
+            });
+
             value = value / (width * height);
 
             return value;
@@ -248,15 +251,16 @@ namespace WFA_Lib
             int bytes = Math.Abs(bmpData.Stride) * bmpData.Height;
             byte[] rgbValues = new byte[bytes];
 
-            for (int i = 0; i < height; i++)
+            Parallel.For(0, height, (index) =>
             {
                 for (int j = 0; j < width; j++)
                 {
-                    rgbValues[i * bmpData.Stride + j * 3 + 2] = input[i, j].R;
-                    rgbValues[i * bmpData.Stride + j * 3 + 1] = input[i, j].G;
-                    rgbValues[i * bmpData.Stride + j * 3] = input[i, j].B;
+                    rgbValues[index * bmpData.Stride + j * 3 + 2] = input[index, j].R;
+                    rgbValues[index * bmpData.Stride + j * 3 + 1] = input[index, j].G;
+                    rgbValues[index * bmpData.Stride + j * 3] = input[index, j].B;
                 }
-            }
+            });
+
             System.Runtime.InteropServices.Marshal.Copy(rgbValues, 0, ptr, bytes);
             image.UnlockBits(bmpData);
             return image;
@@ -264,11 +268,9 @@ namespace WFA_Lib
 
         public static Color[,] ToSquare(Bitmap inputImage)
         {
-            // calculate the new size of the image (the closest square of power of 2)
             int maxDim = Math.Max(inputImage.Height, inputImage.Width);
             int power = (int)Math.Ceiling(Math.Log2(maxDim));
             int size = (int)Math.Pow(2, power);
-
             Color[,] output = new Color[size, size];
 
             var rect = new Rectangle(0, 0, inputImage.Width, inputImage.Height);
@@ -279,21 +281,21 @@ namespace WFA_Lib
 
             System.Runtime.InteropServices.Marshal.Copy(ptr, rgbValues, 0, bytes);
 
-            for (int i = 0; i < inputImage.Height; i++)
+            Parallel.For(0, inputImage.Height, (index) =>
             {
                 for (int j = 0; j < inputImage.Width; j++)
                 {
-                    output[i, j] = Color.FromArgb(rgbValues[i * bmpData.Stride + j * 3 + 2], rgbValues[i * bmpData.Stride + j * 3 + 1], rgbValues[i * bmpData.Stride + j * 3]);
+                    output[index, j] = Color.FromArgb(rgbValues[index * bmpData.Stride + j * 3 + 2], rgbValues[index * bmpData.Stride + j * 3 + 1], rgbValues[index * bmpData.Stride + j * 3]);
                 }
-            }
+            });
 
-            for (int i = inputImage.Height; i < size; i++)
+            Parallel.For(inputImage.Height, size, (index) =>
             {
                 for (int j = inputImage.Width; j < size; j++)
                 {
-                    output[i, j] = Color.Black;
+                    output[index, j] = Color.Black;
                 }
-            }
+            });
 
             inputImage.UnlockBits(bmpData);
             return output;
@@ -331,17 +333,18 @@ namespace WFA_Lib
 
             int dim = input.GetLength(1);
             double[,] output = new double[input.GetLength(0) * 2, input.GetLength(1) * 2];
-            
-            
-            for (int i = 0; i < dim; i++)
+
+
+            Parallel.For(0, dim, (index) =>
             {
                 for (int j = 0; j < dim; j++)
                 {
-                    output[i, j] = input[i,j].R;
-                    output[i, j + dim] = input[i,j].G;
-                    output[i + dim, j + dim] = input[i,j].B;
+                    output[index, j] = input[index, j].R;
+                    output[index, j + dim] = input[index, j].G;
+                    output[index + dim, j + dim] = input[index, j].B;
                 }
-            }
+            });
+
             return output;
         }
 
@@ -360,20 +363,21 @@ namespace WFA_Lib
 
 
 
-            for (int i = 0; i < height / 2; i++)
+            Parallel.For(0, height / 2, (index) =>
             {
                 for (int j = 0; j < width / 2; j++)
                 {
-                    red = (byte)input[i, j];
-                    green = (byte)input[i, j + width / 2];
-                    blue = (byte)input[i + height / 2, j];
+                    red = (byte)input[index, j];
+                    green = (byte)input[index, j + width / 2];
+                    blue = (byte)input[index + height / 2, j];
 
-                    rgbValues[i * bmpData.Stride + j * 3 + 2] = red;
-                    rgbValues[i * bmpData.Stride + j * 3 + width * 3 / 2 + 1] = green;
-                    rgbValues[i * bmpData.Stride + height / 2 * bmpData.Stride + j * 3] = blue;
+                    rgbValues[index * bmpData.Stride + j * 3 + 2] = red;
+                    rgbValues[index * bmpData.Stride + j * 3 + width * 3 / 2 + 1] = green;
+                    rgbValues[index * bmpData.Stride + height / 2 * bmpData.Stride + j * 3] = blue;
 
                 }
-            }
+            });
+
             System.Runtime.InteropServices.Marshal.Copy(rgbValues, 0, ptr, bytes);
             image.UnlockBits(bmpData);
             return image;
@@ -383,6 +387,7 @@ namespace WFA_Lib
         {
             if (img1.Width != img2.Width || img1.Height != img2.Height)
                 throw new ArgumentException("The picures are not the same size");
+
             var rect = new Rectangle(0, 0, img1.Width, img2.Width);
 
             var bmpData1 = img1.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
@@ -399,14 +404,15 @@ namespace WFA_Lib
 
             double error = 0;
 
-            for (int i = 0; i < bmpData1.Width; i++)
+            Parallel.For(0, bmpData1.Width, (index) =>
             {
                 for (int j = 0; j < bmpData1.Height; j++)
                 {
-                    error += Math.Pow(rgbValues1[i + j] - rgbValues2[i + j], 2);
+                    error += Math.Pow(rgbValues1[index + j] - rgbValues2[index + j], 2);
 
                 }
-            }
+            });
+
             img1.UnlockBits(bmpData1);
             img2.UnlockBits(bmpData2);
             return error;
