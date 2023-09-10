@@ -105,9 +105,9 @@ namespace WFA_Lib
             (firstHalfC1, firstHalfC2, firstHalfC3) = CalculateFirstFalf(wfa, power - length);
             List<MidResult> secondHalf = CalculateSecondHalf(wfa, length);
 
-            var resultC1 = MultiplyMidResults(firstHalfC1, secondHalf, (int)Math.Pow(2, power));
-            var resultC2 = MultiplyMidResults(firstHalfC2, secondHalf, (int)Math.Pow(2, power));
-            var resultC3 = MultiplyMidResults(firstHalfC3, secondHalf, (int)Math.Pow(2, power));
+            var resultC1 = MultiplyMidResults(firstHalfC1, secondHalf, size);
+            var resultC2 = MultiplyMidResults(firstHalfC2, secondHalf, size);
+            var resultC3 = MultiplyMidResults(firstHalfC3, secondHalf, size);
 
             if (depth < power)
             {
