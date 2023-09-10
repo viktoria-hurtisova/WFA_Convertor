@@ -46,7 +46,7 @@ namespace WFA_Lib
             WFA wfaClass = new WFA(inputWFAFile);
 
 
-            // intialization for decoding
+            // initialization for decoding
             List<Matrix> transitionMatrices;
             try
             {
@@ -64,7 +64,7 @@ namespace WFA_Lib
             WFAStruct wfa = new WFAStruct(transitionMatrices, initialDist, wfaClass.FinalDistribution);
 
             Bitmap image = ToImage(wfaClass, wfa, depth);
-            
+
 
             image.Save(imageName);
 
@@ -72,10 +72,17 @@ namespace WFA_Lib
 
         }
 
+        static private int SumGeometricSequence(int a1, int r, int n)
+        {
+            return a1 * (int)(1 - Math.Pow(r, n)) / (1 - r);
+        }
+
         private static Bitmap ToImage(WFA wfaClass, WFAStruct wfa, int depth)
         {
             int maxDim = Math.Max(wfaClass.Resolution.Height, wfaClass.Resolution.Width);
             int power = (int)Math.Ceiling(Math.Log2(maxDim));
+            int size = (int)Math.Pow(2, power);
+
             int length;
             if (depth == 0 || depth >= power)
             {
@@ -88,20 +95,19 @@ namespace WFA_Lib
                                                                 // (power - length) will be calculated in the first half
             }
 
-
-            totalNumOfTasks = (int)(1 - Math.Pow(4, length)) / (1 - 4) * 4;
+            totalNumOfTasks = 3 * SumGeometricSequence(4, 4, power - length)                    //calculating first half
+                                + SumGeometricSequence(4, 4, length)                            //calculating second half
+                                + (int)Math.Pow(2, power * 2)                                   //multiplication of mid results
+                                + wfaClass.Resolution.Height * wfaClass.Resolution.Width;       //building the image
 
             // Calculate 
             List<MidResult> firstHalfC1, firstHalfC2, firstHalfC3;
             (firstHalfC1, firstHalfC2, firstHalfC3) = CalculateFirstFalf(wfa, power - length);
             List<MidResult> secondHalf = CalculateSecondHalf(wfa, length);
 
-            double value1, value2, value3;
-            Color color;
-
-            var resultC1 = MultiplyMidResults(firstHalfC1, secondHalf, (int)Math.Pow(2, power));
-            var resultC2 = MultiplyMidResults(firstHalfC2, secondHalf, (int)Math.Pow(2, power));
-            var resultC3 = MultiplyMidResults(firstHalfC3, secondHalf, (int)Math.Pow(2, power));
+            var resultC1 = MultiplyMidResults(firstHalfC1, secondHalf, size);
+            var resultC2 = MultiplyMidResults(firstHalfC2, secondHalf, size);
+            var resultC3 = MultiplyMidResults(firstHalfC3, secondHalf, size);
 
             if (depth < power)
             {
@@ -110,15 +116,23 @@ namespace WFA_Lib
                 wfaClass.ChangeResolution(ratio);
             }
 
+            return BuildPicture(wfaClass, resultC1, resultC2, resultC3);  
+        }
+
+        private static Bitmap BuildPicture(WFA wfaClass, double[,] resultsC1, double[,] resultsC2, double[,] resultsC3)
+        {
+            double value1, value2, value3;
+            Color color;
+
             Color[,] image = new Color[wfaClass.Resolution.Height, wfaClass.Resolution.Width];
 
             for (int i = 0; i < wfaClass.Resolution.Height; i++)
             {
                 for (int j = 0; j < wfaClass.Resolution.Width; j++)
                 {
-                    value1 = resultC1[i, j] * 255;
-                    value2 = resultC2[i, j] * 255;
-                    value3 = resultC3[i, j] * 255;
+                    value1 = resultsC1[i, j] * 255;
+                    value2 = resultsC2[i, j] * 255;
+                    value3 = resultsC3[i, j] * 255;
 
 
                     value1 = Math.Max(Math.Min(value1, 255), 0);
@@ -130,9 +144,10 @@ namespace WFA_Lib
 
 
                     image[i, j] = color;
-                    progressBar.Report(++totalNumOfTasksEnded / totalNumOfTasks);
                 }
             }
+
+            progressBar.Report(0.98);   // we are done, just few final things, thats why it is like this
 
             return ImageManipulator.ArrayToImage(image);
         }
@@ -188,8 +203,6 @@ namespace WFA_Lib
                 if (midRes.Address.Length == length)
                 {
                     result.Add(midRes);
-                    if (totalNumOfTasks > 0)
-                        progressBar.Report(++totalNumOfTasksEnded / totalNumOfTasks);
                 }
                 else
                 {
@@ -202,6 +215,14 @@ namespace WFA_Lib
                 }
             }
 
+            if (totalNumOfTasks > 0) // that means that we are decoding
+            {
+                lock (progressBar)
+                {
+                    totalNumOfTasksEnded += SumGeometricSequence(4, 4, length);
+                    progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
+                }
+            }
             return result;
         }
 
@@ -234,8 +255,6 @@ namespace WFA_Lib
                 if (midRes.Address.Length == length)
                 {
                     result.Add(midRes);
-                    if (totalNumOfTasks > 0)
-                        progressBar.Report(++totalNumOfTasksEnded / totalNumOfTasks);
                 }
                 else
                 {
@@ -245,6 +264,14 @@ namespace WFA_Lib
                         w = (Alphabet)i + midRes.Address;
                         stack.Push(new MidResult(v, w));
                     }
+                }
+            }
+            if (totalNumOfTasks > 0) // that means that we are decoding
+            {
+                lock (progressBar)
+                {
+                    totalNumOfTasksEnded += SumGeometricSequence(4, 4, length);
+                    progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
                 }
             }
 
@@ -313,6 +340,13 @@ namespace WFA_Lib
                     image[coor.X, coor.Y] = value;
                 }
             }
+
+            totalNumOfTasksEnded += size;
+            lock (progressBar)
+            {
+                progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
+            }
+
             return image;
         }
 
