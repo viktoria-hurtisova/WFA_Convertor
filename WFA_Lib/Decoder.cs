@@ -72,10 +72,18 @@ namespace WFA_Lib
 
         }
 
+        static private int SumGeometricSequence(int a1, int r, int n) 
+        {
+            return a1 * (int)(1 - Math.Pow(r, n)) / (1 - r);
+        }
+
+
         private static Bitmap ToImage(WFA wfaClass, WFAStruct wfa, int depth)
         {
             int maxDim = Math.Max(wfaClass.Resolution.Height, wfaClass.Resolution.Width);
             int power = (int)Math.Ceiling(Math.Log2(maxDim));
+            int size = (int)Math.Pow(2, power);
+
             int length;
             if (depth == 0 || depth >= power)
             {
@@ -89,7 +97,10 @@ namespace WFA_Lib
             }
 
 
-            totalNumOfTasks = (int)(3 * Math.Pow(2, power - length) + Math.Pow(2, length) + 4 * Math.Pow(2, power));
+            totalNumOfTasks = 3 * SumGeometricSequence(4, 4, power - length)                    //calculating first half
+                                + SumGeometricSequence(4, 4, length)                            //calculating second half
+                                + (int)Math.Pow(2, power * 2)                                   //multiplication of mid results
+                                + wfaClass.Resolution.Height * wfaClass.Resolution.Width;       //building the image
 
             // Calculate 
             List<MidResult> firstHalfC1, firstHalfC2, firstHalfC3;
@@ -201,10 +212,14 @@ namespace WFA_Lib
                     }
                 }
             }
-            totalNumOfTasksEnded += (int)Math.Pow(2, length);
+
+            if (totalNumOfTasks > 0) // that means that we are decoding
+            {
             lock (progressBar)
             {
+                    totalNumOfTasksEnded += SumGeometricSequence(4, 4, length);
                 progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
+            }
             }
             return result;
         }
@@ -249,8 +264,14 @@ namespace WFA_Lib
                     }
                 }
             }
-            totalNumOfTasksEnded += (int)Math.Pow(2, length);
+            if (totalNumOfTasks > 0) // that means that we are decoding
+            {
+                lock (progressBar)
+                {
+                totalNumOfTasksEnded += SumGeometricSequence(4, 4, length);
             progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
+            }
+            }
 
             return result;
         }
