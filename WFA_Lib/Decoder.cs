@@ -72,11 +72,10 @@ namespace WFA_Lib
 
         }
 
-        static private int SumGeometricSequence(int a1, int r, int n) 
+        static private int SumGeometricSequence(int a1, int r, int n)
         {
             return a1 * (int)(1 - Math.Pow(r, n)) / (1 - r);
         }
-
 
         private static Bitmap ToImage(WFA wfaClass, WFAStruct wfa, int depth)
         {
@@ -215,11 +214,11 @@ namespace WFA_Lib
 
             if (totalNumOfTasks > 0) // that means that we are decoding
             {
-            lock (progressBar)
-            {
+                lock (progressBar)
+                {
                     totalNumOfTasksEnded += SumGeometricSequence(4, 4, length);
-                progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
-            }
+                    progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
+                }
             }
             return result;
         }
@@ -268,9 +267,9 @@ namespace WFA_Lib
             {
                 lock (progressBar)
                 {
-                totalNumOfTasksEnded += SumGeometricSequence(4, 4, length);
-            progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
-            }
+                    totalNumOfTasksEnded += SumGeometricSequence(4, 4, length);
+                    progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
+                }
             }
 
             return result;
