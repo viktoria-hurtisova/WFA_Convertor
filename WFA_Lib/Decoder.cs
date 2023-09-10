@@ -95,7 +95,6 @@ namespace WFA_Lib
                                                                 // (power - length) will be calculated in the first half
             }
 
-
             totalNumOfTasks = 3 * SumGeometricSequence(4, 4, power - length)                    //calculating first half
                                 + SumGeometricSequence(4, 4, length)                            //calculating second half
                                 + (int)Math.Pow(2, power * 2)                                   //multiplication of mid results
@@ -105,9 +104,6 @@ namespace WFA_Lib
             List<MidResult> firstHalfC1, firstHalfC2, firstHalfC3;
             (firstHalfC1, firstHalfC2, firstHalfC3) = CalculateFirstFalf(wfa, power - length);
             List<MidResult> secondHalf = CalculateSecondHalf(wfa, length);
-
-            double value1, value2, value3;
-            Color color;
 
             var resultC1 = MultiplyMidResults(firstHalfC1, secondHalf, (int)Math.Pow(2, power));
             var resultC2 = MultiplyMidResults(firstHalfC2, secondHalf, (int)Math.Pow(2, power));
@@ -120,15 +116,23 @@ namespace WFA_Lib
                 wfaClass.ChangeResolution(ratio);
             }
 
+            return BuildPicture(wfaClass, resultC1, resultC2, resultC3);  
+        }
+
+        private static Bitmap BuildPicture(WFA wfaClass, double[,] resultsC1, double[,] resultsC2, double[,] resultsC3)
+        {
+            double value1, value2, value3;
+            Color color;
+
             Color[,] image = new Color[wfaClass.Resolution.Height, wfaClass.Resolution.Width];
 
             for (int i = 0; i < wfaClass.Resolution.Height; i++)
             {
                 for (int j = 0; j < wfaClass.Resolution.Width; j++)
                 {
-                    value1 = resultC1[i, j] * 255;
-                    value2 = resultC2[i, j] * 255;
-                    value3 = resultC3[i, j] * 255;
+                    value1 = resultsC1[i, j] * 255;
+                    value2 = resultsC2[i, j] * 255;
+                    value3 = resultsC3[i, j] * 255;
 
 
                     value1 = Math.Max(Math.Min(value1, 255), 0);
@@ -143,8 +147,7 @@ namespace WFA_Lib
                 }
             }
 
-            totalNumOfTasksEnded += (int)Math.Pow(2, power);
-            progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
+            progressBar.Report(0.98);   // we are done, just few final things, thats why it is like this
 
             return ImageManipulator.ArrayToImage(image);
         }
