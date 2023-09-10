@@ -71,7 +71,7 @@ namespace WFA_Lib
             List<MidResult> firstHalfC1, firstHalfC2, firstHalfC3, secondHalf;
             (firstHalfC1, firstHalfC2, firstHalfC3, secondHalf) = CalculateMidResults(wfa, power, length);
 
-            double[,] resultC1, resultC2, resultC3 = new double[size, size];
+            double[,] resultC1, resultC2, resultC3;
             (resultC1, resultC2, resultC3) = MultiplyMidResults(firstHalfC1, firstHalfC2, firstHalfC3, secondHalf, size);
 
             if (depth < power)
@@ -86,13 +86,13 @@ namespace WFA_Lib
 
         private static Bitmap BuildPicture(WFA wfaClass, double[,] resultsC1, double[,] resultsC2, double[,] resultsC3)
         {
-            double value1, value2, value3;
-            Color color;
 
             Color[,] image = new Color[wfaClass.Resolution.Height, wfaClass.Resolution.Width];
 
             Parallel.For(0, wfaClass.Resolution.Height, index =>
             {
+                double value1, value2, value3;
+                Color color;
                 for (int j = 0; j < wfaClass.Resolution.Width; j++)
                 {
                     value1 = resultsC1[index, j] * 255;
@@ -289,32 +289,32 @@ namespace WFA_Lib
             List<MidResult> secondHalf = CalculateSecondHalf(wfa, length);
             List<double[,]> results = new List<double[,]>();
 
-            Parallel.For(0, initDist.Count, (index) =>
+            for (int i = 0; i < initDist.Count; i++)
             {
-                wfa.InitialDistribution = initDist[index];
+                wfa.InitialDistribution = initDist[i];
                 firstHalf.Add(CalculateFirstHalfForBase(wfa, power - length));
-                results.Add(MultiplyMidResults(firstHalf[index], secondHalf, size));
+                results.Add(MultiplyMidResults(firstHalf[i], secondHalf, size));
 
-            });
+            }
 
-            StateImage image;
-            State state;
-            Parallel.For(0, initDist.Count, index =>
+            for (int i = 0; i < initDist.Count; i++)
             {
-                image = new StateImage(results[index], size);
+                State state;
+                StateImage image;
+                image = new StateImage(results[i], size);
                 state = State.CreateProcessedState(wfa.NumberOfStates, image);
                 wfa.AddState(state);
-            });
+            }
         }
 
         private static double[,] MultiplyMidResults(List<MidResult> firstHalf, List<MidResult> secondHalf, int size)
         {
-            double value;
-            Coordinates coor;
             double[,] image = new double[size, size];
 
             Parallel.ForEach(secondHalf, sh =>
             {
+                double value;
+                Coordinates coor;
                 for (int i = 0; i < firstHalf.Count; i++)
                 {
                     value = firstHalf[i].Value * sh.Value;
@@ -325,9 +325,9 @@ namespace WFA_Lib
                 }
             });
 
-            totalNumOfTasksEnded += size;
             lock (progressBar)
             {
+                totalNumOfTasksEnded += (int)Math.Pow(size, 2);
                 progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
             }
 

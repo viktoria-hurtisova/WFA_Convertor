@@ -254,10 +254,11 @@ namespace WFA_Lib
 
             double error = 0;
 
-            Parallel.For(0, vector1.Height, (index) =>
+            for(int i = 0; i < vector1.Height; i ++)
             {
-                error += Math.Pow(vector1.Values[index] - vector2.Values[index], 2);
-            });
+                error += Math.Pow(vector1.Values[i] - vector2.Values[i], 2);
+            }
+
             return error;
         }
     }

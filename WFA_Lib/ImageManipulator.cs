@@ -152,8 +152,7 @@ namespace WFA_Lib
             {
                 for (int j = 0; j < newHeight; j++)
                 {
-                    averageValue = Average(inputImage, averageBoxWidth, averageBoxHeight, index * averageBoxWidth, j * averageBoxHeight);
-                    newImage[index, j] = averageValue;
+                    newImage[index, j] = Average(inputImage, averageBoxWidth, averageBoxHeight, index * averageBoxWidth, j * averageBoxHeight);
                 }
             });
             return newImage;
@@ -163,13 +162,13 @@ namespace WFA_Lib
         {
             double value = 0;
 
-            Parallel.For(x, x + width, (index) =>
+            for (int i = x; i < x + width; i++)
             {
                 for (int j = y; j < y + height; j++)
                 {
-                    value += inputFile[index, j];
+                    value += inputFile[i, j];
                 }
-            });
+            }
 
             value = value / (width * height);
 
@@ -352,7 +351,6 @@ namespace WFA_Lib
         {
             int width = input.GetLength(1);
             int height = input.GetLength(0);
-            byte red, green, blue;
 
             Bitmap image = new Bitmap(width, height);
             var rect = new Rectangle(0, 0, width, height);
@@ -365,6 +363,7 @@ namespace WFA_Lib
 
             Parallel.For(0, height / 2, (index) =>
             {
+                byte red, green, blue;
                 for (int j = 0; j < width / 2; j++)
                 {
                     red = (byte)input[index, j];
@@ -404,14 +403,14 @@ namespace WFA_Lib
 
             double error = 0;
 
-            Parallel.For(0, bmpData1.Width, (index) =>
+            for (int i = 0; i < bmpData1.Width; i++)
             {
                 for (int j = 0; j < bmpData1.Height; j++)
                 {
-                    error += Math.Pow(rgbValues1[index + j] - rgbValues2[index + j], 2);
+                    error += Math.Pow(rgbValues1[i + j] - rgbValues2[i + j], 2);
 
                 }
-            });
+            }
 
             img1.UnlockBits(bmpData1);
             img2.UnlockBits(bmpData2);
