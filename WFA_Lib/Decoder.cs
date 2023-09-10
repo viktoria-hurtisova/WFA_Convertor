@@ -101,13 +101,11 @@ namespace WFA_Lib
                                 + wfaClass.Resolution.Height * wfaClass.Resolution.Width;       //building the image
 
             // Calculate 
-            List<MidResult> firstHalfC1, firstHalfC2, firstHalfC3;
-            (firstHalfC1, firstHalfC2, firstHalfC3) = CalculateFirstFalf(wfa, power - length);
-            List<MidResult> secondHalf = CalculateSecondHalf(wfa, length);
+            List<MidResult> firstHalfC1, firstHalfC2, firstHalfC3, secondHalf;
+            (firstHalfC1, firstHalfC2, firstHalfC3, secondHalf) = CalculateMidResults(wfa, power, length);
 
-            var resultC1 = MultiplyMidResults(firstHalfC1, secondHalf, size);
-            var resultC2 = MultiplyMidResults(firstHalfC2, secondHalf, size);
-            var resultC3 = MultiplyMidResults(firstHalfC3, secondHalf, size);
+            double[,] resultC1, resultC2, resultC3 = new double[size, size];
+            (resultC1, resultC2, resultC3) = MultiplyMidResults(firstHalfC1, firstHalfC2, firstHalfC3, secondHalf, size);
 
             if (depth < power)
             {
@@ -116,7 +114,7 @@ namespace WFA_Lib
                 wfaClass.ChangeResolution(ratio);
             }
 
-            return BuildPicture(wfaClass, resultC1, resultC2, resultC3);  
+            return BuildPicture(wfaClass, resultC1, resultC2, resultC3);
         }
 
         private static Bitmap BuildPicture(WFA wfaClass, double[,] resultsC1, double[,] resultsC2, double[,] resultsC3)
@@ -126,13 +124,13 @@ namespace WFA_Lib
 
             Color[,] image = new Color[wfaClass.Resolution.Height, wfaClass.Resolution.Width];
 
-            for (int i = 0; i < wfaClass.Resolution.Height; i++)
+            Parallel.For(0, wfaClass.Resolution.Height, index =>
             {
                 for (int j = 0; j < wfaClass.Resolution.Width; j++)
                 {
-                    value1 = resultsC1[i, j] * 255;
-                    value2 = resultsC2[i, j] * 255;
-                    value3 = resultsC3[i, j] * 255;
+                    value1 = resultsC1[index, j] * 255;
+                    value2 = resultsC2[index, j] * 255;
+                    value3 = resultsC3[index, j] * 255;
 
 
                     value1 = Math.Max(Math.Min(value1, 255), 0);
@@ -143,9 +141,9 @@ namespace WFA_Lib
                     color = Color.FromArgb((int)value1, (int)value2, (int)value3);
 
 
-                    image[i, j] = color;
+                    image[index, j] = color;
                 }
-            }
+            });
 
             progressBar.Report(0.98);   // we are done, just few final things, thats why it is like this
 
@@ -158,20 +156,28 @@ namespace WFA_Lib
         /// <param name="wfa"></param>
         /// <param name="length">Length of the words</param>
         /// <returns></returns>
-        private static (List<MidResult>, List<MidResult>, List<MidResult>) CalculateFirstFalf(WFAStruct wfa, int length)
+        private static (List<MidResult>, List<MidResult>, List<MidResult>, List<MidResult>) CalculateMidResults(WFAStruct wfa, int power, int length)
         {
-
             Vector initialDistribution = wfa.InitialDistribution * wfa.TransitionMatrices[2];
-            var resultsC1 = CalculateFirstHalf(initialDistribution, wfa.TransitionMatrices, length);
+            var task1 = new Task<List<MidResult>>(() => CalculateFirstHalf(initialDistribution, wfa.TransitionMatrices, power - length));
+            task1.Start();
 
             initialDistribution = wfa.InitialDistribution * wfa.TransitionMatrices[0];
-            var resultC2 = CalculateFirstHalf(initialDistribution, wfa.TransitionMatrices, length);
+            var task2 = new Task<List<MidResult>>(() => CalculateFirstHalf(initialDistribution, wfa.TransitionMatrices, power - length));
+            task2.Start();
 
             initialDistribution = wfa.InitialDistribution * wfa.TransitionMatrices[1];
-            var resultC3 = CalculateFirstHalf(initialDistribution, wfa.TransitionMatrices, length);
+            var task3 = new Task<List<MidResult>>(() => CalculateFirstHalf(initialDistribution, wfa.TransitionMatrices, power - length));
+            task3.Start();
 
-            // Calculate the first half for all colour components
-            return (resultsC1, resultC2, resultC3);
+            var taskSecondHalf = new Task<List<MidResult>>(() => CalculateSecondHalf(wfa, length));
+            taskSecondHalf.Start();
+
+            var tasks = new Task[] { task1, task2, task3, taskSecondHalf };
+            Task.WaitAll(tasks);
+
+            return (task1.Result, task2.Result, task3.Result, taskSecondHalf.Result);
+
         }
 
         /// <summary>
@@ -278,6 +284,24 @@ namespace WFA_Lib
             return result;
         }
 
+        private static (double[,], double[,], double[,]) MultiplyMidResults(List<MidResult> firstHalfC1, List<MidResult> firstHalfC2, List<MidResult> firstHalfC3, List<MidResult> secondHalf, int size)
+        {
+
+            var task1 = new Task<double[,]>(() => MultiplyMidResults(firstHalfC1, secondHalf, size));
+            task1.Start();
+
+            var task2 = new Task<double[,]>(() => MultiplyMidResults(firstHalfC2, secondHalf, size));
+            task2.Start();
+
+            var task3 = new Task<double[,]>(() => MultiplyMidResults(firstHalfC3, secondHalf, size));
+            task3.Start();
+
+            var tasks = new Task[] { task1, task2, task3 };
+            Task.WaitAll(tasks);
+
+            return (task1.Result, task2.Result, task3.Result);
+        }
+
         /// <summary>
         /// Method for calculating base images
         /// </summary>
@@ -316,12 +340,12 @@ namespace WFA_Lib
 
             StateImage image;
             State state;
-            for (int i = 0; i < initDist.Count; i++)
+            Parallel.For(0, initDist.Count, index =>
             {
-                image = new StateImage(results[i], size);
+                image = new StateImage(results[index], size);
                 state = State.CreateProcessedState(wfaClass.NumberOfStates, image);
                 wfaClass.AddState(state);
-            }
+            });
         }
 
         private static double[,] MultiplyMidResults(List<MidResult> firstHalf, List<MidResult> secondHalf, int size)
@@ -329,8 +353,10 @@ namespace WFA_Lib
             double value;
             Coordinates coor;
             double[,] image = new double[size, size];
-            foreach (var sh in secondHalf)
+
+            Parallel.ForEach(secondHalf, sh =>
             {
+
                 for (int i = 0; i < firstHalf.Count; i++)
                 {
                     value = firstHalf[i].Value * sh.Value;
@@ -339,7 +365,7 @@ namespace WFA_Lib
 
                     image[coor.X, coor.Y] = value;
                 }
-            }
+            });
 
             totalNumOfTasksEnded += size;
             lock (progressBar)
