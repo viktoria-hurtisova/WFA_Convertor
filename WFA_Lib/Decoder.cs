@@ -184,7 +184,7 @@ namespace WFA_Lib
                 }
             }
 
-            if (totalNumOfTasks > 0) // that means that we are decoding
+            if (progressBar != null)
             {
                 lock (progressBar)
                 {
@@ -233,7 +233,7 @@ namespace WFA_Lib
                     }
                 }
             }
-            if (totalNumOfTasks > 0) // that means that we are decoding
+            if (progressBar != null)
             {
                 lock (progressBar)
                 {
@@ -325,10 +325,13 @@ namespace WFA_Lib
                 }
             });
 
-            lock (progressBar)
+            if (progressBar != null)
             {
-                totalNumOfTasksEnded += (int)Math.Pow(size, 2);
-                progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
+                lock (progressBar)
+                {
+                    totalNumOfTasksEnded += (int)Math.Pow(size, 2);
+                    progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
+                }
             }
 
             return image;
