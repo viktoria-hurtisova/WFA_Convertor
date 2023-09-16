@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Drawing;
-using System.Threading;
 using System.Drawing.Imaging;
 using System.Threading.Tasks;
 
@@ -146,7 +145,6 @@ namespace WFA_Lib
             var newImage = new double[newWidth, newHeight];
             int averageBoxWidth = inputImage.GetLength(1) / newHeight;
             int averageBoxHeight = inputImage.GetLength(0) / newWidth;
-            double averageValue;
 
             Parallel.For(0, newWidth, (index) =>
             {
