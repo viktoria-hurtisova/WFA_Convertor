@@ -278,17 +278,20 @@ namespace WFA_Lib
 
             System.Runtime.InteropServices.Marshal.Copy(ptr, rgbValues, 0, bytes);
 
-            Parallel.For(0, inputImage.Height, (index) =>
+            var height = inputImage.Height;
+            var width = inputImage.Width;
+
+            Parallel.For(0, height, (index) =>
             {
-                for (int j = 0; j < inputImage.Width; j++)
+                for (int j = 0; j < width; j++)
                 {
                     output[index, j] = Color.FromArgb(rgbValues[index * bmpData.Stride + j * 3 + 2], rgbValues[index * bmpData.Stride + j * 3 + 1], rgbValues[index * bmpData.Stride + j * 3]);
                 }
             });
 
-            Parallel.For(inputImage.Height, size, (index) =>
+            Parallel.For(height, size, (index) =>
             {
-                for (int j = inputImage.Width; j < size; j++)
+                for (int j = width; j < size; j++)
                 {
                     output[index, j] = Color.Black;
                 }
