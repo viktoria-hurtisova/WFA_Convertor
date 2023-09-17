@@ -38,7 +38,7 @@ namespace WFA_Lib
         {
             int x = 0;
             int y = 0;
-            int size = Size/2;
+            int size = Size / 2;
             switch (letter)
             {
                 case Alphabet._0:
@@ -68,7 +68,7 @@ namespace WFA_Lib
 
             return new StateImage(image, size);
         }
-        
+
         public Vector ToVector()
         {
             var vector = new Vector(new double[Size * Size]);
@@ -77,7 +77,7 @@ namespace WFA_Lib
             {
                 for (int j = 0; j < Size; j++)
                 {
-                    vector.Values[i*Size + j] = Values[i, j];
+                    vector.Values[i * Size + j] = Values[i, j];
                 }
             }
 
@@ -94,7 +94,7 @@ namespace WFA_Lib
         public int HighestResolution { get; private set; }
 
         private bool processed;
-        public bool Processed { get=> processed; }
+        public bool Processed { get => processed; }
 
         public State(int id, StateImage image)
         {
@@ -151,22 +151,22 @@ namespace WFA_Lib
 
     public struct Transition
     {
-        public int InitialStateIndex { get; private set; }
+        public int FromStateId { get; private set; }
         public Alphabet Label { get; private set; }
-        public int FinalStateIndex { get; private set; }
+        public int ToStateId { get; private set; }
         public double Weight { get; private set; }
 
         public Transition(int fromStateId, int toStateId, Alphabet label, double weight)
         {
-            InitialStateIndex = fromStateId;
-            FinalStateIndex = toStateId;
+            FromStateId = fromStateId;
+            ToStateId = toStateId;
             Label = label;
             Weight = weight;
         }
 
         public override string ToString()
         {
-            return $"{InitialStateIndex}, {FinalStateIndex}, {Label}, {Weight.ToString(CultureInfo.CreateSpecificCulture("en-US"))}";
+            return $"{FromStateId}, {ToStateId}, {Label}, {Weight.ToString(CultureInfo.CreateSpecificCulture("en-US"))}";
         }
     }
 
@@ -187,7 +187,7 @@ namespace WFA_Lib
             int y = 0;
 
             int power = word.Values.Count;
-            int size = (int)Math.Pow(2, power-1);
+            int size = (int)Math.Pow(2, power - 1);
 
             foreach (var letter in word.Values)
             {

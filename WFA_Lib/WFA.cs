@@ -27,7 +27,9 @@ namespace WFA_Lib
         public List<State> States { get => states; }
 
         private Vector finalDistribution;
-        public Vector FinalDistribution { get => finalDistribution; }
+        public Vector FinalDistribution { get => finalDistribution; set { finalDistribution = value; } }
+        public List<Matrix> TransitionMatrices { get; private set; }
+        public Vector InitialDistribution { get; set; }
 
         public WFA(ResolutionStruct res, ColorRepresentation repre)
         {
@@ -44,6 +46,10 @@ namespace WFA_Lib
             states = new List<State>();
 
             LoadWFA(fileName);
+            CreateTransitionMatrices();
+
+            InitialDistribution = new Vector(new double[NumberOfStates]);
+            InitialDistribution.Values[6] = 1;
         }
 
         private void LoadWFA(string fileLocation)
@@ -197,14 +203,14 @@ namespace WFA_Lib
                     }
                     startIndex += 8;
 
-                    BitConverter.TryWriteBytes(helper, t.InitialStateIndex);
+                    BitConverter.TryWriteBytes(helper, t.FromStateId);
                     for (int i = 0; i < 4; i++)
                     {
                         buffer[startIndex + i] = helper[i];
                     }
                     startIndex += 4;
 
-                    BitConverter.TryWriteBytes(helper, t.FinalStateIndex);
+                    BitConverter.TryWriteBytes(helper, t.ToStateId);
                     for (int i = 0; i < 4; i++)
                     {
                         buffer[startIndex + i] = helper[i];
@@ -283,7 +289,10 @@ namespace WFA_Lib
 
         }
 
-        public List<Matrix> CreateTransitionMatrices()
+        /// <summary>
+        /// Create transtion matrices from the list of transitions for decoding
+        /// </summary>
+        public void CreateTransitionMatrices()
         {
             Matrix m0 = new double[NumberOfStates, NumberOfStates];
             Matrix m1 = new double[NumberOfStates, NumberOfStates];
@@ -294,22 +303,22 @@ namespace WFA_Lib
                 switch (t.Label)
                 {
                     case Alphabet._0:
-                        m0.Values[t.InitialStateIndex, t.FinalStateIndex] = t.Weight;
+                        m0.Values[t.FromStateId, t.ToStateId] = t.Weight;
                         break;
                     case Alphabet._1:
-                        m1.Values[t.InitialStateIndex, t.FinalStateIndex] = t.Weight;
+                        m1.Values[t.FromStateId, t.ToStateId] = t.Weight;
                         break;
                     case Alphabet._2:
-                        m2.Values[t.InitialStateIndex, t.FinalStateIndex] = t.Weight;
+                        m2.Values[t.FromStateId, t.ToStateId] = t.Weight;
                         break;
                     case Alphabet._3:
-                        m3.Values[t.InitialStateIndex, t.FinalStateIndex] = t.Weight;
+                        m3.Values[t.FromStateId, t.ToStateId] = t.Weight;
                         break;
                     default:
                         break;
                 }
             }
-            return new List<Matrix> { m0, m1, m2, m3 };
+            TransitionMatrices = new List<Matrix> { m0, m1, m2, m3 };
 
         }
 
@@ -329,6 +338,10 @@ namespace WFA_Lib
             states[index] = State.CreateProcessedState(state.ID, state.Image);
         }
 
+        /// <summary>
+        /// Romove states which have id bigger or equal to n
+        /// </summary>
+        /// <param name="n"></param>
         public void RemoveStates(int n)
         {
             List<State> statesToRemove = new List<State>();
@@ -349,12 +362,16 @@ namespace WFA_Lib
             numberOfStates = states.Count;
         }
 
+        /// <summary>
+        /// Remove transitions which are going to or from state with id bigger or equal to n
+        /// </summary>
+        /// <param name="n"></param>
         public void RemoveTransitions(int n)
         {
             List<Transition> tranToRemove = new List<Transition>();
             foreach (var transition in Transitions)
             {
-                if (transition.InitialStateIndex >= n || transition.FinalStateIndex >= n)
+                if (transition.FromStateId >= n || transition.ToStateId >= n)
                 {
                     tranToRemove.Add(transition);
                 }
@@ -465,9 +482,9 @@ namespace WFA_Lib
                 { 0.25, 0.5, 0, 0, 0.25, 0 },
                 { 0.25, 0, 0.5, 0, 0, 0.25 }};
 
-            List<Matrix> matrices = new List<Matrix>() { m0, m1, m2, m3 };
+            TransitionMatrices = new List<Matrix>() { m0, m1, m2, m3 };
 
-            Decoder.CreateBaseImages(this, matrices);
+            Decoder.CreateBaseImages(this);
         }
 
     }
