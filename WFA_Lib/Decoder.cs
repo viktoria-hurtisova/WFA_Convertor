@@ -126,18 +126,18 @@ namespace WFA_Lib
         private static (List<MidResult>, List<MidResult>, List<MidResult>, List<MidResult>) CalculateMidResults(WFA wfa, int power, int length)
         {
             MyVector initialDistribution = wfa.InitialDistribution * wfa.TransitionMatrices[2];
-            var task1 = new Task<List<MidResult>>(() => CalculateFirstHalf(initialDistribution, wfa.TransitionMatrices, power - length));
+            var task1 = new Task<List<MidResult>>(() => CalculateMidResults(initialDistribution, wfa.TransitionMatrices, power - length, true));
             task1.Start();
 
             initialDistribution = wfa.InitialDistribution * wfa.TransitionMatrices[0];
-            var task2 = new Task<List<MidResult>>(() => CalculateFirstHalf(initialDistribution, wfa.TransitionMatrices, power - length));
+            var task2 = new Task<List<MidResult>>(() => CalculateMidResults(initialDistribution, wfa.TransitionMatrices, power - length, true));
             task2.Start();
 
             initialDistribution = wfa.InitialDistribution * wfa.TransitionMatrices[1];
-            var task3 = new Task<List<MidResult>>(() => CalculateFirstHalf(initialDistribution, wfa.TransitionMatrices, power - length));
+            var task3 = new Task<List<MidResult>>(() => CalculateMidResults(initialDistribution, wfa.TransitionMatrices, power - length, true));
             task3.Start();
 
-            var taskSecondHalf = new Task<List<MidResult>>(() => CalculateSecondHalf(wfa, length));
+            var taskSecondHalf = new Task<List<MidResult>>(() => CalculateMidResults(wfa.FinalDistribution, wfa.TransitionMatrices, length, true));
             taskSecondHalf.Start();
 
             var tasks = new Task[] { task1, task2, task3, taskSecondHalf };
@@ -153,7 +153,7 @@ namespace WFA_Lib
         /// <param name="transitionMatrices"></param>
         /// <param name="length">Lengt of the words</param>
         /// <returns></returns>
-        private static List<MidResult> CalculateFirstHalf(MyVector initialDistribution, List<MyMatrix> transitionMatrices, int length)
+        private static List<MidResult> CalculateMidResults(MyVector distribution, List<MyMatrix> transitionMatrices, int length, bool calculatingFirstHalf)
         {
             List<MidResult> firsts = new List<MidResult>();
             List<MidResult> results = new List<MidResult>();
@@ -164,7 +164,7 @@ namespace WFA_Lib
             //Initialization for the first quadrants
             foreach (int i in Enum.GetValues(typeof(Alphabet)))
             {
-                v = initialDistribution * transitionMatrices[i];
+                v = calculatingFirstHalf ? Distribution * transitionMatrices[i] : transitionMatrices[i] * distribution;
                 w = new Word((Alphabet)i);
                 midRes = new MidResult(v, w);
                 firsts.Add(midRes);
@@ -198,7 +198,7 @@ namespace WFA_Lib
             */
         }
 
-        private static List<MidResult> Calculate(MidResult first, int length, List<MyMatrix> transitionMatrices)
+        private static List<MidResult> Calculate(MidResult first, int length, List<MyMatrix> transitionMatrices, bool calculatingFirstHalf)
         {
             List<MidResult> result = new List<MidResult>();
             Stack<MidResult> stack = new Stack<MidResult>();
@@ -216,60 +216,10 @@ namespace WFA_Lib
                 {
                     foreach (int i in Enum.GetValues(typeof(Alphabet)))
                     {
-                        v = midRes.Value * transitionMatrices[i];
-                        w = midRes.Address + (Alphabet)i;
+                        v = calculatingFirstHalf ? (midRes.Value * transitionMatrices[i]) : (transitionMatrices[i] * midRes.Value);
+                        w = calculatingFirstHalf ? (midRes.Address + (Alphabet)i) : ((Alphabet)i + midRes.Address);
                         stack.Push(new MidResult(v, w));
                     }
-                }
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Calculate for all words w A_wF
-        /// </summary>
-        /// <param name="wfa">The automaton</param>
-        /// <param name="length">lengt of the words</param>
-        /// <returns>List of all words of length size with corresponding vector</returns>
-        static private List<MidResult> CalculateSecondHalf(WFA wfa, int length)
-        {
-            Stack<MidResult> stack = new Stack<MidResult>();
-            MyVector v;
-            Word w;
-            MidResult midRes;
-
-            //Initialization
-            foreach (int i in Enum.GetValues(typeof(Alphabet)))
-            {
-                v = wfa.TransitionMatrices[i] * wfa.FinalDistribution;
-                w = new Word((Alphabet)i);
-                midRes = new MidResult(v, w);
-                stack.Push(midRes);
-            }
-
-            List<MidResult> result = new List<MidResult>();
-
-            while (stack.TryPop(out midRes))
-            {
-                if (midRes.Address.Length == length)
-                    result.Add(midRes);
-                else
-                {
-                    foreach (int i in Enum.GetValues(typeof(Alphabet)))
-                    {
-                        v = wfa.TransitionMatrices[i] * midRes.Value;
-                        w = (Alphabet)i + midRes.Address;
-                        stack.Push(new MidResult(v, w));
-                    }
-                }
-            }
-            if (progressBar != null)
-            {
-                lock (progressBar)
-                {
-                    totalNumOfTasksEnded += SumGeometricSequence(4, 4, length);
-                    progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
                 }
             }
 
