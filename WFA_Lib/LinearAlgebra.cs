@@ -4,60 +4,78 @@ using System.Text;
 using System.Drawing;
 using System.Threading;
 using System.Globalization;
+using Extreme.Mathematics.LinearAlgebra;
+using Extreme.Mathematics;
 
 namespace WFA_Lib
 {
-    public struct Matrix
+    public struct MyMatrix
     {
-        public double[,] Values { get; }
-        public int Height { get => Values.GetLength(0); }   // number of rows
-        public int Width { get => Values.GetLength(1); }    // number of columns
+        private readonly DenseMatrix<double> values;
+        public DenseMatrix<double> Values { get => values; }
+        public int Height { get => values.RowCount; }   // number of rows
+        public int Width { get => values.ColumnCount; }    // number of columns
 
-        public Matrix(double[,] values)
+        public MyMatrix(double[,] values)
         {
-            Values = new double[values.GetLength(0), values.GetLength(1)];
-            Array.Copy(values, Values, values.GetLength(0) * values.GetLength(1));
+            this.values = Matrix.Create(values);
         }
 
-        public static Matrix operator *(Matrix matrix1, Matrix matrix2)
+        public MyMatrix(double[] values, int height, int width)
         {
-            if (matrix1.Width != matrix2.Height)
-                throw new ArgumentException("Matrices are not of appropriet size");
-
-            double[,] result = new double[matrix1.Height, matrix2.Width];
-            alglib.rmatrixgemm(matrix1.Height, matrix2.Width, matrix1.Width, 1, (double[,])matrix1, 0, 0, 0, (double[,])matrix2, 0, 0, 0, 1, ref result, 0, 0);
-
-            return result;
+            this.values = Matrix.Create(height, width, values, MatrixElementOrder.RowMajor);
         }
 
-        public static explicit operator double[,](Matrix matrix)
+        public MyMatrix(DenseMatrix<double> m)
+        {
+            this.values = m.Clone().ToDenseMatrix();
+        }
+
+        public MyMatrix(Matrix<double> m)
+        {
+            this.values = m.Clone().ToDenseMatrix();
+        }
+
+        /// <summary>
+        /// TODO
+        /// </summary>
+        /// <param name="matrix1"></param>
+        /// <param name="matrix2"></param>
+        /// <returns></returns>
+        public static MyMatrix operator *(MyMatrix matrix1, MyMatrix matrix2)
+        {
+            var result = DenseMatrix<double>.Multiply(matrix1.values, matrix2.values);
+            return new MyMatrix(result);
+        }
+
+        /*
+        public static explicit operator double[,](MyMatrix matrix)
         {
             double[,] values = new double[matrix.Height, matrix.Width];
             Array.Copy(matrix.Values, values, matrix.Height * matrix.Width);
             return values;
         }
+        */
 
-        public static implicit operator Matrix(double[,] array)
+        public static explicit operator double[](MyMatrix matrix)
         {
-            return new Matrix(array);
+
+            return matrix.values.ToArray();
+
         }
 
-        public static Matrix operator +(Matrix matrix1, Matrix matrix2)
+        public static implicit operator MyMatrix(double[,] array)
         {
-            if (matrix1.Height != matrix2.Height || matrix1.Width != matrix2.Width)
-                throw new ArgumentException("Matrices are not of appropriet size");
+            return new MyMatrix(array);
+        }
 
-            double[,] result = new double[matrix1.Height, matrix1.Width];
+        public static MyMatrix operator +(MyMatrix matrix1, MyMatrix matrix2)
+        {
 
-            for (int i = 0; i < matrix1.Height; i++)
-            {
-                for (int j = 0; j < matrix2.Width; j++)
-                {
-                    result[i, j] = matrix1.Values[i, j] + matrix2.Values[i, j];
-                }
-            }
+            DenseMatrix<double> result = matrix1.values.Clone().ToDenseMatrix();
+            result = DenseMatrix<double>.Add(matrix1.values, 1, matrix2.values, result);
 
-            return new Matrix(result);
+            return new MyMatrix(result);
         }
 
         public double[] ToOneDimensionalArray()
@@ -74,101 +92,77 @@ namespace WFA_Lib
 
             return array;
         }
-        public Matrix Transpose()
+        public MyMatrix Transpose()
         {
-            double[,] values = new double[Width, Height];
+            MyMatrix result = new MyMatrix(values.Transpose());
 
-            for (int i = 0; i < Height; i++)
-            {
-                for (int j = 0; j < Width; j++)
-                {
-                    values[j, i] = Values[i, j];
-                }
-            }
-
-            return values;
+            return result;
         }
+
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder();
-            sb.Append("{");
-            for (int i = 0; i < Height; i++)
-            {
-                sb.Append("{");
-                for (int j = 0; j < Width; j++)
-                {
-                    sb.Append(Values[i, j].ToString(CultureInfo.CreateSpecificCulture("en-US")));
-                    sb.Append(", ");
-                }
-                sb.Remove(sb.Length - 2, 2);
-                sb.Append("},");
-                sb.Append(Environment.NewLine);
-            }
-            sb.Remove(sb.Length - 3, 3);
-            sb.Append("}");
-            return sb.ToString();
+            return values.ToString();
         }
 
     }
 
-    public struct Vector
+    public struct MyVector
     {
-        public double[] Values { get; }
-        public int Height { get => Values.GetLength(0); } // number of rows
+        public Vector<double> Values { get => _values; }
 
-        public Vector(double[] values)
+        private readonly Vector<double> _values;
+        public int Height { get => _values.Length; }
+
+        public MyVector(double[] values)
         {
-            int height = values.GetLength(0);
-            Values = new double[height];
-            Array.Copy(values, Values, height);
+            this._values = Vector.Create(values);
         }
 
-        public Vector(Vector vector)
+        public MyVector(Vector<double> values)
         {
-            int height = vector.Height;
-            Values = new double[height];
-            Array.Copy(vector.Values, Values, height);
+            _values = values;
         }
 
-        public static Vector operator *(Matrix matrix, Vector vector)
+        private MyVector(DenseMatrix<double> values)
+        {
+            _values = Vector.Create(values.ToArray());
+        }
+
+        public static MyVector operator *(MyMatrix matrix, MyVector vector)
         {
             if (matrix.Width != vector.Height)
-                throw new ArgumentException("Matrix and vector are not in compatibile dimensions");
+                throw new ArgumentException("Matrix and vector do not have compatibile dimensions.");
 
-            double[] result = new double[matrix.Height];
-            alglib.rmatrixgemv(matrix.Height, matrix.Width, 1, (double[,])matrix, 0, 0, 0, (double[])vector, 0, 1, ref result, 0);
+            double[] vectorValues = vector.Values.ToArray();
+            MyMatrix vectorAsMatrix = new MyMatrix(Matrix.Create(vector.Height, 1, vectorValues, MatrixElementOrder.RowMajor));
 
-            return result;
+            var result = DenseMatrix<double>.Multiply(matrix.Values, vectorAsMatrix.Values);
+            return new MyVector(result);
         }
 
-        public static Vector operator *(Vector vector, Matrix matrix)
+        public static MyVector operator *(MyVector vector, MyMatrix matrix)
         {
             if (matrix.Height != vector.Height)
                 throw new ArgumentException("Matrix and vector are not in compatibile dimensions");
 
-            double[] result = new double[matrix.Width];
-            alglib.rmatrixgemv(matrix.Height, matrix.Width, 1, (double[,])matrix, 0, 0, 1, (double[])vector, 0, 1, ref result, 0);
 
-            return result;
+            DenseMatrix<double> transpose = matrix.Values.Transpose().ToDenseMatrix();
+            return new MyMatrix(transpose) * vector;
+
         }
 
-        public static Vector operator *(double value, Vector vector)
+        public static MyVector operator *(double value, MyVector vector)
         {
-            double[] newVector = new double[vector.Height];
-            for (int i = 0; i < vector.Height; i++)
-            {
-                newVector[i] = value * vector.Values[i];
-            }
-
-            return newVector;
+            var result = Vector.Multiply<double>(value, vector.Values);
+            return new MyVector(result);
         }
 
-        public static Vector operator *(Vector vector, double value)
+        public static MyVector operator *(MyVector vector, double value)
         {
             return value * vector;
         }
 
-        public static double operator *(Vector v1, Vector v2)
+        public static double operator *(MyVector v1, MyVector v2)
         {
             double result = 0;
             if (v1.Height != v2.Height)
@@ -182,19 +176,18 @@ namespace WFA_Lib
 
         }
 
-        public static explicit operator double[](Vector vector)
+
+        public static explicit operator double[](MyVector vector)
         {
-            double[] values = new double[vector.Height];
-            Array.Copy(vector.Values, values, vector.Height);
-            return values;
+            return vector.Values.ToArray(); ;
         }
 
-        public static implicit operator Vector(double[] values)
+        public static implicit operator MyVector(double[] values)
         {
-            return new Vector(values);
+            return new MyVector(values);
         }
 
-        public bool Equals(Vector vector)
+        public bool Equals(MyVector vector)
         {
             for (int i = 0; i < Height; i++)
             {
@@ -206,16 +199,7 @@ namespace WFA_Lib
 
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder();
-            sb.Append("{");
-            foreach (var num in Values)
-            {
-                sb.Append(num.ToString(CultureInfo.CreateSpecificCulture("en-US")));
-                sb.Append(". ");
-            }
-            sb.Remove(sb.Length - 2, 2);
-            sb.Append("}");
-            return sb.ToString();
+            return _values.ToString();
         }
     }
 }

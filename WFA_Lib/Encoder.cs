@@ -56,8 +56,6 @@ namespace WFA_Lib
 
             MakeWFA(wfa, state, double.PositiveInfinity, length);
 
-
-
             wfa.EncodeWFA(wfaName);
         }
 
@@ -79,17 +77,16 @@ namespace WFA_Lib
             foreach (int i in Enum.GetValues(typeof(Alphabet)))
             {
                 quadrant = state.Image.GetQuadrant((Alphabet)i);    // we get the appropriet quadrant
-
-                transitions = FindLinearCombinations(wfa, state, quadrant, (Alphabet)i, out cost1);    // linear combination calculations
-
-
                 currentNumOfStates = wfa.NumberOfStates;
+
+                // linear combination calculations 
+                // or we can call it the new transition option
+                transitions = FindLinearCombinations(wfa, state, quadrant, (Alphabet)i, out cost1);
 
                 // new state option
                 newState = new State(wfa.NumberOfStates, quadrant);
                 wfa.AddState(newState);
                 wfa.AddTransition(new Transition(state.ID, newState.ID, (Alphabet)i, 1));
-
                 cost2 = MakeWFA(wfa, newState, Math.Min(max - cost - 1, cost1 - 1), depth - 1);   // resursive call of ToWFA
 
                 // comparing two variants
@@ -123,13 +120,13 @@ namespace WFA_Lib
 
         private static List<Transition> FindLinearCombinations(WFA wfa, State parentState, StateImage quadrant, Alphabet label, out double cost)
         {
-            List<Vector> imageVectors = new List<Vector>();
+            List<MyVector> imageVectors = new List<MyVector>();
             List<int> statesUsed = new List<int>();
             StateImage stateImg;
             List<Transition> transitions = new List<Transition>();
 
-            Vector b = quadrant.ToVector();
-            Vector imageVector;
+            var b = quadrant.ToVector();
+            MyVector imageVector;
             double value;
             int indexer = 0;
 
@@ -141,7 +138,7 @@ namespace WFA_Lib
                     statesUsed.Add(state.ID);
                     imageVector = stateImg.ToVector();
 
-                    value = Ratio(b, imageVector);      //we want to check, if there exists real number such that value*imageVector = b
+                    value = RatioOfTwoVectors(b, imageVector);      //we want to check, if there exists real number such that value*imageVector = b
 
                     if (indexer < b.Height)
                     {
@@ -153,7 +150,6 @@ namespace WFA_Lib
                                 cost = 1;
                                 return transitions;
                             }
-
                         }
                         indexer++;
                     }
@@ -161,16 +157,10 @@ namespace WFA_Lib
                 }
             }
 
-            //If there is no vector such that it is the same except for a multiple of a real number
+            var A = ConcatenateVectorsToMatrix(imageVectors);
+            var x = A.Values.LeastSquaresSolve(b.Values);
 
-
-            Matrix A = ConcatenateVectors(imageVectors);
-            double[] x;
-            int info;
-            alglib.densesolverlsreport report;
-            alglib.rmatrixsolvels((double[,])A, A.Height, A.Width, (double[])b, 0.0, out info, out report, out x);
-
-            Vector newImage = A * (Vector)x;
+            var newImage = new MyVector(A.Values * x);
 
 
             for (int i = 0; i < x.Length; i++)      // we will add transitions with non-zero weights
@@ -181,56 +171,59 @@ namespace WFA_Lib
                 }
             }
 
-            if (SquareError(newImage, b) < 0.001)       // we will consider it a good linear combination if the square error of the new image and the original <1
-            {
+            if (SquareError(newImage, b) == 0)
                 cost = transitions.Count;
-            }
             else
-            {
                 cost = double.PositiveInfinity;
-            }
 
             return transitions;
         }
 
-        private static double Ratio(Vector v1, Vector v2)
+        /// <summary>
+        /// calculating ratio such as v1 = v2 * ratio
+        /// </summary>
+        /// <param name="v1"></param>
+        /// <param name="v2"></param>
+        /// <returns></returns>
+        /**/
+        private static double RatioOfTwoVectors(MyVector v1, MyVector v2)
         {
-            double sum1 = 0;
-            double sum2 = 0;
-            int nonZeroValues = 0;
+            double ratio = 0;
+            double newRatio;
 
             for (int i = 0; i < v1.Height; i++)
             {
-                if (v1.Values[i] != 0 && v2.Values[i] != 0)
-                    nonZeroValues++;
-                else if (v1.Values[i] != 0 || v2.Values[i] != 0)    // one of them is zero and one is non-zero
-                {
+                if (v1.Values[i] == 0 && v2.Values[i] == 0)
+                    continue;
+                else if (v2.Values[i] == 0)
                     return double.NaN;
-                }
-                sum1 += v1.Values[i];
-                sum2 = v2.Values[i];
+                else
+                    newRatio = v1.Values[i] / v2.Values[i];
+                
+                if (ratio == 0)
+                    ratio = newRatio;
+
+                if (Math.Abs(ratio - newRatio) > 0)
+                    return double.NaN;
             }
 
-            if (sum2 == 0 || nonZeroValues == 0)
-                return double.NaN;
-            else
-                return (sum1 / sum2) / nonZeroValues;
+            return ratio;
         }
 
-        private static Matrix ConcatenateVectors(List<Vector> vectors)
+        private static MyMatrix ConcatenateVectorsToMatrix(List<MyVector> vectors)
         {
-            int width = (vectors.Count > vectors[0].Height - 1) ? vectors[0].Height - 1 : vectors.Count;
-            //int width = vectors.Count;
-            Matrix matrix = new Matrix(new double[vectors[0].Height, width]);
+            var height = vectors[0].Height;
+            int width = (vectors.Count > height - 1) ? height - 1 : vectors.Count;
+            double[,] matrix = new double[height, width];
 
-            Parallel.For(0, matrix.Height, (index) =>
+            Parallel.For(0, height, (index) =>
             {
                 for (int j = 0; j < width; j++)
                 {
-                    matrix.Values[index, j] = vectors[j].Values[index];
+                    matrix[index, j] = vectors[j].Values[index];
                 }
             });
-            return matrix;
+            return new MyMatrix(matrix);
         }
 
         private static void MapTo01(double[,] image)
@@ -247,14 +240,14 @@ namespace WFA_Lib
         /// <summary>
         /// Calculate square of two vectors
         /// </summary>
-        private static double SquareError(Vector vector1, Vector vector2)
+        private static double SquareError(MyVector vector1, MyVector vector2)
         {
             if (vector1.Height != vector2.Height)
                 throw new ArgumentException("Vectors must have same height");
 
             double error = 0;
 
-            for(int i = 0; i < vector1.Height; i ++)
+            for (int i = 0; i < vector1.Height; i++)
             {
                 error += Math.Pow(vector1.Values[i] - vector2.Values[i], 2);
             }
