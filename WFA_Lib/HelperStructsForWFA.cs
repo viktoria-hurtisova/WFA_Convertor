@@ -66,7 +66,21 @@ namespace WFA_Lib
                 }
             }
 
-            return new StateImage(image, size);
+        public MyVector ToVector()
+        {
+            var vector = new MyVector(new double[Size * Size]);
+
+            var values = Values;
+            int size = Size;
+            Parallel.For(0, size, (index) =>
+            {
+                for (int j = 0; j < size; j++)
+                {
+                    vector.Values[index * size + j] = values[index, j];
+                }
+            });
+
+            return vector;
         }
 
         public Vector ToVector()
