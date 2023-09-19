@@ -171,13 +171,13 @@ namespace WFA_Lib
                 }
             }
 
-            if (SquareError(newImage, b) < 0.001)       // we will consider it a good linear combination if the square error of the new image and the original <1
+            if (SquareError(newImage, b) == 0)
                 cost = transitions.Count;
             else
                 cost = double.PositiveInfinity;
 
             return transitions;
-            }
+        }
 
         /// <summary>
         /// calculating ratio such as v1 = v2 * ratio
@@ -197,45 +197,18 @@ namespace WFA_Lib
                     continue;
                 else if (v2.Values[i] == 0)
                     return double.NaN;
-            else
+                else
                     newRatio = v1.Values[i] / v2.Values[i];
                 
                 if (ratio == 0)
                     ratio = newRatio;
 
-                if (Math.Abs(ratio - newRatio) != 0)
+                if (Math.Abs(ratio - newRatio) > 0)
                     return double.NaN;
             }
 
             return ratio;
         }
-
-        /*/
-
-        private static double RatioOfTwoVectors(MyVector v1, MyVector v2)
-        {
-            double sum1 = 0;
-            double sum2 = 0;
-            int nonZeroValues = 0;
-
-            for (int i = 0; i < v1.Height; i++)
-            {
-                if (v1.Values[i] != 0 && v2.Values[i] != 0)
-                    nonZeroValues++;
-                else if (v1.Values[i] != 0 || v2.Values[i] != 0)    // one of them is zero and one is non-zero
-                {
-                    return double.NaN;
-                }
-                sum1 += v1.Values[i];
-                sum2 = v2.Values[i];
-            }
-
-            if (sum2 == 0 || nonZeroValues == 0)
-                return double.NaN;
-            else
-                return (sum1 / sum2) / nonZeroValues;
-        }
-        /**/
 
         private static MyMatrix ConcatenateVectorsToMatrix(List<MyVector> vectors)
         {
