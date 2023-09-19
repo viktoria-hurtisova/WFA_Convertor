@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Drawing;
-using System.IO;
-using System.Linq;
 using System.Globalization;
+using System.Threading.Tasks;
 
 namespace WFA_Lib
 {
@@ -58,12 +55,16 @@ namespace WFA_Lib
             }
 
             double[,] image = new double[size, size];
-            for (int i = 0; i < size; i++)
+            var values = Values;
+            Parallel.For(0, size, (index) =>
             {
                 for (int j = 0; j < size; j++)
                 {
-                    image[i, j] = Values[x + i, y + j];
+                    image[index, j] = values[x + index, y + j];
                 }
+            });
+
+            return new StateImage(image, size);
             }
 
         public MyVector ToVector()
@@ -79,21 +80,6 @@ namespace WFA_Lib
                     vector.Values[index * size + j] = values[index, j];
                 }
             });
-
-            return vector;
-        }
-
-        public Vector ToVector()
-        {
-            var vector = new Vector(new double[Size * Size]);
-
-            for (int i = 0; i < Size; i++)
-            {
-                for (int j = 0; j < Size; j++)
-                {
-                    vector.Values[i * Size + j] = Values[i, j];
-                }
-            }
 
             return vector;
         }
