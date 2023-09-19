@@ -79,17 +79,16 @@ namespace WFA_Lib
             foreach (int i in Enum.GetValues(typeof(Alphabet)))
             {
                 quadrant = state.Image.GetQuadrant((Alphabet)i);    // we get the appropriet quadrant
-
-                transitions = FindLinearCombinations(wfa, state, quadrant, (Alphabet)i, out cost1);    // linear combination calculations
-
-
                 currentNumOfStates = wfa.NumberOfStates;
+
+                // linear combination calculations 
+                // or we can call it the new transition option
+                transitions = FindLinearCombinations(wfa, state, quadrant, (Alphabet)i, out cost1);
 
                 // new state option
                 newState = new State(wfa.NumberOfStates, quadrant);
                 wfa.AddState(newState);
                 wfa.AddTransition(new Transition(state.ID, newState.ID, (Alphabet)i, 1));
-
                 cost2 = MakeWFA(wfa, newState, Math.Min(max - cost - 1, cost1 - 1), depth - 1);   // resursive call of ToWFA
 
                 // comparing two variants
