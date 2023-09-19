@@ -165,14 +165,6 @@ namespace WFA_Lib
 
             var newImage = new MyVector(A.Values * x);
 
-            Matrix A = ConcatenateVectors(imageVectors);
-            double[] x;
-            int info;
-            alglib.densesolverlsreport report;
-            alglib.rmatrixsolvels((double[,])A, A.Height, A.Width, (double[])b, 0.0, out info, out report, out x);
-
-            Vector newImage = A * (Vector)x;
-
 
             for (int i = 0; i < x.Length; i++)      // we will add transitions with non-zero weights
             {
