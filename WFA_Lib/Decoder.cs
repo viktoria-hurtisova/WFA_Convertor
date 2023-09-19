@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Drawing;
@@ -10,10 +10,10 @@ namespace WFA_Lib
 {
     struct MidResult
     {
-        public Vector Value { get; }
+        public MyVector Value { get; }
         public Word Address { get; }
 
-        public MidResult(Vector c, Word w)
+        public MidResult(MyVector c, Word w)
         {
             Value = c;
             Address = w;
@@ -116,6 +116,7 @@ namespace WFA_Lib
 
             return ImageManipulator.ArrayToImage(image);
         }
+
         /// <summary>
         /// It will initiate for each color component (each quadrant) the calculation of the first half of the word
         /// </summary>
@@ -124,7 +125,7 @@ namespace WFA_Lib
         /// <returns></returns>
         private static (List<MidResult>, List<MidResult>, List<MidResult>, List<MidResult>) CalculateMidResults(WFA wfa, int power, int length)
         {
-            Vector initialDistribution = wfa.InitialDistribution * wfa.TransitionMatrices[2];
+            MyVector initialDistribution = wfa.InitialDistribution * wfa.TransitionMatrices[2];
             var task1 = new Task<List<MidResult>>(() => CalculateFirstHalf(initialDistribution, wfa.TransitionMatrices, power - length));
             task1.Start();
 
@@ -152,11 +153,11 @@ namespace WFA_Lib
         /// <param name="transitionMatrices"></param>
         /// <param name="length">Lengt of the words</param>
         /// <returns></returns>
-        private static List<MidResult> CalculateFirstHalf(Vector initialDistribution, List<Matrix> transitionMatrices, int length)
+        private static List<MidResult> CalculateFirstHalf(MyVector initialDistribution, List<MyMatrix> transitionMatrices, int length)
         {
-            List<MidResult> result = new List<MidResult>();
-            Stack<MidResult> stack = new Stack<MidResult>();
-            Vector v;
+            List<MidResult> firsts = new List<MidResult>();
+            List<MidResult> results = new List<MidResult>();
+            MyVector v;
             Word w;
             MidResult midRes;
 
@@ -166,8 +167,46 @@ namespace WFA_Lib
                 v = initialDistribution * transitionMatrices[i];
                 w = new Word((Alphabet)i);
                 midRes = new MidResult(v, w);
-                stack.Push(midRes);
+                firsts.Add(midRes);
             }
+
+            var tasks = new Task[firsts.Count];
+            for (int i = 0; i < first.Count; i++)
+            {
+                var task = new Task<List<MidResult>>(() => Calculate(firsts[i], length, transitionMatrices))
+                task.Start();
+                tasks[i] = task;
+            }
+
+            Task.WaitAll(tasks);
+
+            foreach (var task in tasks)
+            {
+                results.AddRange(task.Result);
+            }
+            return result;
+            
+            /*
+            if (progressBar != null)
+            {
+                lock (progressBar)
+                {
+                    totalNumOfTasksEnded += SumGeometricSequence(4, 4, length);
+                    progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
+                }
+            }
+            */
+        }
+
+        private static List<MidResult> Calculate(MidResult first, int length, List<MyMatrix> transitionMatrices)
+        {
+            List<MidResult> result = new List<MidResult>();
+            Stack<MidResult> stack = new Stack<MidResult>();
+            MyVector v;
+            Word w;
+            MidResult midRes;
+
+            stack.Add(first);
 
             while (stack.TryPop(out midRes))
             {
@@ -184,14 +223,6 @@ namespace WFA_Lib
                 }
             }
 
-            if (progressBar != null)
-            {
-                lock (progressBar)
-                {
-                    totalNumOfTasksEnded += SumGeometricSequence(4, 4, length);
-                    progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
-                }
-            }
             return result;
         }
 
@@ -204,7 +235,7 @@ namespace WFA_Lib
         static private List<MidResult> CalculateSecondHalf(WFA wfa, int length)
         {
             Stack<MidResult> stack = new Stack<MidResult>();
-            Vector v;
+            MyVector v;
             Word w;
             MidResult midRes;
 
@@ -275,7 +306,7 @@ namespace WFA_Lib
             double[] initDistY2 = { 0, 0, 0, 0, 1, 0 };     // for y^2
             double[] initDistXY = { 0, 0, 0, 0, 0, 1 };     // for xy
 
-            List<Vector> initDist = new List<Vector>() { initDist1, initDistX, initDistY, initDistX2, initDistY2, initDistXY };
+            List<MyVector> initDist = new List<MyVector>() { initDist1, initDistX, initDistY, initDistX2, initDistY2, initDistXY };
 
             int maxDim = Math.Max(wfa.Resolution.Height, wfa.Resolution.Width);
             int power = (int)Math.Ceiling(Math.Log2(maxDim));
@@ -294,7 +325,6 @@ namespace WFA_Lib
                 wfa.InitialDistribution = initDist[i];
                 firstHalf.Add(CalculateFirstHalfForBase(wfa, power - length));
                 results.Add(MultiplyMidResults(firstHalf[i], secondHalf, size));
-
             }
 
             for (int i = 0; i < initDist.Count; i++)
@@ -343,7 +373,7 @@ namespace WFA_Lib
         {
             List<MidResult> result = new List<MidResult>();
             Stack<MidResult> stack = new Stack<MidResult>();
-            Vector v;
+            MyVector v;
             Word w;
             MidResult midRes;
 
