@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Diagnostics;
-using System.Threading;
+using System.Threading.Tasks;
 
 namespace WFA_Lib
 {
@@ -162,7 +162,7 @@ namespace WFA_Lib
             }
 
             //If there is no vector such that it is the same except for a multiple of a real number
-            
+
 
             Matrix A = ConcatenateVectors(imageVectors);
             double[] x;
@@ -181,7 +181,7 @@ namespace WFA_Lib
                 }
             }
 
-            if (SquareError(newImage, b) < 0.001)       // we will consider it a good linear comination if the square error of the new image and the original <1
+            if (SquareError(newImage, b) < 0.001)       // we will consider it a good linear combination if the square error of the new image and the original <1
             {
                 cost = transitions.Count;
             }
@@ -198,6 +198,7 @@ namespace WFA_Lib
             double sum1 = 0;
             double sum2 = 0;
             int nonZeroValues = 0;
+
             for (int i = 0; i < v1.Height; i++)
             {
                 if (v1.Values[i] != 0 && v2.Values[i] != 0)
@@ -222,25 +223,25 @@ namespace WFA_Lib
             //int width = vectors.Count;
             Matrix matrix = new Matrix(new double[vectors[0].Height, width]);
 
-            for (int i = 0; i < matrix.Height; i++)
+            Parallel.For(0, matrix.Height, (index) =>
             {
                 for (int j = 0; j < width; j++)
                 {
-                    matrix.Values[i, j] = vectors[j].Values[i];
+                    matrix.Values[index, j] = vectors[j].Values[index];
                 }
-            }
+            });
             return matrix;
         }
 
         private static void MapTo01(double[,] image)
         {
-            for (int i = 0; i < image.GetLongLength(0); i++)
+            Parallel.For(0, image.GetLongLength(0), (index) =>
             {
                 for (int j = 0; j < image.GetLongLength(1); j++)
                 {
-                    image[i, j] = image[i, j] / 255;
+                    image[index, j] = image[index, j] / 255;
                 }
-            }
+            });
         }
 
         /// <summary>
@@ -253,10 +254,11 @@ namespace WFA_Lib
 
             double error = 0;
 
-            for (int i = 0; i < vector1.Height; i++)
+            for(int i = 0; i < vector1.Height; i ++)
             {
                 error += Math.Pow(vector1.Values[i] - vector2.Values[i], 2);
             }
+
             return error;
         }
     }
