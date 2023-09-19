@@ -56,8 +56,6 @@ namespace WFA_Lib
 
             MakeWFA(wfa, state, double.PositiveInfinity, length);
 
-
-
             wfa.EncodeWFA(wfaName);
         }
 
@@ -174,7 +172,6 @@ namespace WFA_Lib
             }
 
             if (SquareError(newImage, b) < 0.001)       // we will consider it a good linear combination if the square error of the new image and the original <1
-            {
                 cost = transitions.Count;
             else
                 cost = double.PositiveInfinity;
