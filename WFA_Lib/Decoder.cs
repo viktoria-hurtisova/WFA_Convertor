@@ -4,7 +4,7 @@ using System.Text;
 using System.Drawing;
 using System.Threading.Tasks;
 using WFA_Lib.HelperStructs;
-using System.Threading;
+using WFA_Lib.LinearAlgebra;
 
 namespace WFA_Lib
 {
