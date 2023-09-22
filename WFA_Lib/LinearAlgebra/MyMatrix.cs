@@ -42,20 +42,9 @@ namespace WFA_Lib.LinearAlgebra
             return new MyMatrix(result);
         }
 
-        /*
-        public static explicit operator double[,](MyMatrix matrix)
-        {
-            double[,] values = new double[matrix.Height, matrix.Width];
-            Array.Copy(matrix.Values, values, matrix.Height * matrix.Width);
-            return values;
-        }
-        */
-
         public static explicit operator double[](MyMatrix matrix)
         {
-
             return matrix.values.ToArray();
-
         }
 
         public static implicit operator MyMatrix(double[,] array)

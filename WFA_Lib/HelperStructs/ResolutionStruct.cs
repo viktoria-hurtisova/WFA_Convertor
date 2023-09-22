@@ -1,4 +1,4 @@
-namespace WFA_Lib.HelperStructs
+﻿namespace WFA_Lib.HelperStructs
 {
     public struct ResolutionStruct
     {

@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 
 namespace WFA_Lib.HelperStructs
 {
-    public struct Word
+    public readonly struct Word
     {
         public List<Alphabet> Values { get; }
         public int Length { get => Values.Count; }

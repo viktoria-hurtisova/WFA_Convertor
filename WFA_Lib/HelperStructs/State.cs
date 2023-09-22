@@ -15,8 +15,7 @@ namespace WFA_Lib.HelperStructs
         public State(int id, StateImage image)
         {
             ID = id;
-            Images = new List<StateImage>();
-            Images.Add(image);
+            Images = new List<StateImage> { image };
             HighestResolution = image.Size;
             processed = false;
         }
@@ -36,8 +35,7 @@ namespace WFA_Lib.HelperStructs
 
         public static State CreateProcessedState(int id, StateImage image)
         {
-            State newState = new State(id, image);
-            newState.processed = true;
+            State newState = new State(id, image) { processed = true };
 
             return newState;
         }
