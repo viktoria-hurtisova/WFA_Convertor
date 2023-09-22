@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using WFA_Lib.HelperStructs;
 
 namespace WFA_Lib
 {

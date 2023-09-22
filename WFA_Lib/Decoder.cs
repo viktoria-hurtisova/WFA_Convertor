@@ -3,22 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using System.Drawing;
 using System.Threading.Tasks;
-using System.IO;
+using WFA_Lib.HelperStructs;
 using System.Threading;
 
 namespace WFA_Lib
 {
-    struct MidResult
-    {
-        public MyVector Value { get; }
-        public Word Address { get; }
-
-        public MidResult(MyVector c, Word w)
-        {
-            Value = c;
-            Address = w;
-        }
-    }
 
     public static class Decoder
     {
