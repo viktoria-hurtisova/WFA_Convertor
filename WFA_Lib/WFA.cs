@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Drawing;
 using System.IO;
 using WFA_Lib.HelperStructs;
 using WFA_Lib.LinearAlgebra;

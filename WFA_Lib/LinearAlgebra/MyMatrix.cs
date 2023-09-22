@@ -1,8 +1,5 @@
 ﻿using Extreme.Mathematics.LinearAlgebra;
 using Extreme.Mathematics;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace WFA_Lib.LinearAlgebra
 {
