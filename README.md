@@ -1,8 +1,8 @@
-# WFA Convertor
+# WFA Converter
 
 ## About
 
-This project is only as a "Proof of concept" for the Weighted Finite Automata (WFA) Compression. This project only implements conversion of pictures to WFA and back. It is not very fast, so please do not use pictures bigger than 256x256 pixels.
+This project is only a "Proof of concept" for the Weighted Finite Automata (WFA) Compression. This project only implements the conversion of pictures to WFA and back. It represents the images exactly, therefore, please do not use images bigger than 256x256 pixels.
 
 ## Repository Contents
 
@@ -26,7 +26,7 @@ The encoding algorithm will take an image given by the user and convert it into 
 
 #### Input parameters
 
-The parameters for encoding an image must bein the following format:
+The parameters for encoding an image must be in the following format:
 
 ```
 encode <image> 
@@ -37,7 +37,7 @@ where
 - the keyword `encode` indicates that you have chosen the encoding mode,
 - `<image>` is a path to the image file. The path can be either absolute or relative to the application's location in the file system. The program supports images in the following formats: BMP, JPG, PNG, TIFF. If the image is in a different format, the program will either not be able to process it and will write out an error message, or the resulting WFA may not represent the image.
 
-For example, a correct input for encoding is
+For example, the correct input for encoding is
 
 ```
 encode C:\Users\MyName\Desktop\pictures\garden.png
@@ -48,7 +48,7 @@ Because the algorithm builds a WFA that represents the image exactly, the time f
 #### Output
 
 The resulting automaton will be saved in the same directory as the input image, with the same name but with the suffix `.wfa`.
-If there already is a WFA file with the same name, the program will ask you, if you want to overwrite the existing file. If not, the program will ask you to enter a new name of the file. Please, just write the name without the directory path or suffix.
+If there is a WFA file with the same name, the program will ask you, if you want to overwrite the existing file. If not, the program will ask you to enter a new name of the file. Please, write the name without the directory path or suffix.
 
 ### Decoding image
 
@@ -56,7 +56,7 @@ The decoding algorithm generates an image from an input WFA.
 
 #### Input parameters
 
-The parameters for decoding an image must bein the following format:
+The parameters for decoding an image must be in the following format:
 
 ```
 decode <WFAFile> [depth]
@@ -64,17 +64,17 @@ decode <WFAFile> [depth]
 
 where
 
-- keyword `decode` indicates, that you have chosen the decoding mode,
+- The keyword `decode` indicates, that you have chosen the decoding mode,
 - `<WFAFile>` is a path to the WFA file. The path can be either absolute or relative to the application's location in the file system,
 - `[depth]` is an optional parameter. The parameter indicates how deep into the WFA the algorithm goes. If the parameter is not supplied, the decoder uses the native resolution of the encoded image.
 	
-	The parameter must be in the format `d=<value>`. The `<value>` must be a positive integer number determining the chosen depth. If the value has a the wrong format or is negative, the program will write an error message.
+	The parameter must be in the format `d=<value>`. The `<value>` must be a positive integer number determining the chosen depth. If the value has a wrong format or is negative, the program will write an error message.
 
-For example, a correct input for decoding is
+For example, the correct input for decoding is
  ```
  decode C:\Users\MyName\Desktop\pictures\garden.wfa d=8
  ```
 
 #### Output
 
-The output is a decoded PNG image. It will be saved in the same directory as the input WFA file with the same name as the WFA. If there already is an image with the same name, the program will ask you, if you want to overwrite the existing image. If not, the program will ask you to enter a new name of the image. Please, just write the name without the directory path or suffix.
+The output is a decoded PNG image. It will be saved in the same directory as the input WFA file with the same name as the WFA. If there already is an image with the same name, the program will ask you, if you want to overwrite the existing image. If not, the program will ask you to enter a new name for the image. Please, write the name without the directory path or suffix.
