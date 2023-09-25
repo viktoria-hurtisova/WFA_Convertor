@@ -26,10 +26,10 @@ namespace WFA_Lib
         private List<State> states;
         public List<State> States { get => states; }
 
-        private Vector finalDistribution;
-        public Vector FinalDistribution { get => finalDistribution; set { finalDistribution = value; } }
-        public List<Matrix> TransitionMatrices { get; private set; }
-        public Vector InitialDistribution { get; set; }
+        private MyVector finalDistribution;
+        public MyVector FinalDistribution { get => finalDistribution; set { finalDistribution = value; } }
+        public List<MyMatrix> TransitionMatrices { get; private set; }
+        public MyVector InitialDistribution { get; set; }
 
         public WFA(ResolutionStruct res, ColorRepresentation repre)
         {
@@ -48,7 +48,7 @@ namespace WFA_Lib
             LoadWFA(fileName);
             CreateTransitionMatrices();
 
-            InitialDistribution = new Vector(new double[NumberOfStates]);
+            InitialDistribution = new MyVector(new double[NumberOfStates]);
             InitialDistribution.Values[6] = 1;
         }
 
@@ -103,7 +103,7 @@ namespace WFA_Lib
 
                         numberOfStates = BitConverter.ToInt32(buffer[1..5]);
                         resolution = new ResolutionStruct(BitConverter.ToInt32(buffer[5..9]), BitConverter.ToInt32(buffer[9..13]));
-                        finalDistribution = new Vector(new double[numberOfStates]);
+                        finalDistribution = new MyVector(new double[numberOfStates]);
 
                         headerParsed = true;
                         offset = 13;
@@ -272,7 +272,7 @@ namespace WFA_Lib
 
         private void CalculateFinalDistribution()
         {
-            finalDistribution = new Vector(new double[numberOfStates]);
+            finalDistribution = new MyVector(new double[numberOfStates]);
 
             for (int i = 0; i < numberOfStates; i++)
             {
@@ -294,10 +294,10 @@ namespace WFA_Lib
         /// </summary>
         public void CreateTransitionMatrices()
         {
-            Matrix m0 = new double[NumberOfStates, NumberOfStates];
-            Matrix m1 = new double[NumberOfStates, NumberOfStates];
-            Matrix m2 = new double[NumberOfStates, NumberOfStates];
-            Matrix m3 = new double[NumberOfStates, NumberOfStates];
+            MyMatrix m0 = new double[NumberOfStates, NumberOfStates];
+            MyMatrix m1 = new double[NumberOfStates, NumberOfStates];
+            MyMatrix m2 = new double[NumberOfStates, NumberOfStates];
+            MyMatrix m3 = new double[NumberOfStates, NumberOfStates];
             foreach (var t in Transitions)
             {
                 switch (t.Label)
@@ -318,7 +318,7 @@ namespace WFA_Lib
                         break;
                 }
             }
-            TransitionMatrices = new List<Matrix> { m0, m1, m2, m3 };
+            TransitionMatrices = new List<MyMatrix> { m0, m1, m2, m3 };
 
         }
 
@@ -482,7 +482,7 @@ namespace WFA_Lib
                 { 0.25, 0.5, 0, 0, 0.25, 0 },
                 { 0.25, 0, 0.5, 0, 0, 0.25 }};
 
-            TransitionMatrices = new List<Matrix>() { m0, m1, m2, m3 };
+            TransitionMatrices = new List<MyMatrix>() { m0, m1, m2, m3 };
 
             Decoder.CreateBaseImages(this);
         }
