@@ -142,14 +142,13 @@ namespace WFA_Lib
 
                     if (indexer < b.Height)
                     {
+                        value = RatioOfTwoVectors(b, imageVector);      //we want to check, if there exists real number such that value*imageVector = b
                         if (!double.IsNaN(value) && value != 0)
                         {
-                            if (SquareError(imageVector * value, b) == 0)
-                            {
                                 transitions.Add(new Transition(parentState.ID, state.ID, label, value));
                                 cost = 1;
                                 return transitions;
-                            }
+
                         }
                         indexer++;
                     }
