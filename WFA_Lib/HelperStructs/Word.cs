@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
-using System.Drawing;
 
-namespace WFA_Lib
+namespace WFA_Lib.HelperStructs
 {
     public struct Word
     {
@@ -93,6 +91,4 @@ namespace WFA_Lib
             return sb.ToString();
         }
     }
-
-
 }

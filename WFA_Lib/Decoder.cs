@@ -1,24 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Drawing;
 using System.Threading.Tasks;
-using System.IO;
-using System.Threading;
+using WFA_Lib.HelperStructs;
+using WFA_Lib.LinearAlgebra;
 
 namespace WFA_Lib
 {
-    struct MidResult
-    {
-        public MyVector Value { get; }
-        public Word Address { get; }
-
-        public MidResult(MyVector c, Word w)
-        {
-            Value = c;
-            Address = w;
-        }
-    }
 
     public static class Decoder
     {
@@ -370,6 +358,5 @@ namespace WFA_Lib
                 }
             }
         }
-
     }
 }

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
-using System.Diagnostics;
 using System.Threading.Tasks;
+using WFA_Lib.HelperStructs;
+using WFA_Lib.LinearAlgebra;
 
 namespace WFA_Lib
 {
