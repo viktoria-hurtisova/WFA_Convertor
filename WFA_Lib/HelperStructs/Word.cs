@@ -3,7 +3,7 @@ using System.Text;
 
 namespace WFA_Lib.HelperStructs
 {
-    public readonly struct Word
+    public struct Word
     {
         public List<Alphabet> Values { get; }
         public int Length { get => Values.Count; }
@@ -91,6 +91,4 @@ namespace WFA_Lib.HelperStructs
             return sb.ToString();
         }
     }
-
-
 }

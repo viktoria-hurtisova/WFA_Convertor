@@ -11,17 +11,16 @@ namespace WFA_Lib
     public static class Decoder
     {
         private static ProgressBar progressBar;
-        private static int totalNumOfTasks = 0;
-        private static int totalNumOfTasksEnded = 0;
+        private static int totalNumOfTasks;
+        private static int totalNumOfTasksFinished = 0;
         static public void WFAToImage(string inputWFAFile, string imageName, int depth, ProgressBar pB)
         {
             progressBar = pB;
 
             // initialization of WFA, loading transitions from file
-            WFA wfaClass = new WFA(inputWFAFile);
+            WFA wfa = new WFA(inputWFAFile);
 
-            Bitmap image = ToImage(wfaClass, depth);
-
+            Bitmap image = ToImage(wfa, depth);
             image.Save(imageName);
 
             image.Dispose();
@@ -50,8 +49,8 @@ namespace WFA_Lib
                                                                 // (power - length) will be calculated in the first half
             }
 
-            totalNumOfTasks = 3 * SumGeometricSequence(4, 4, power - length)                    //calculating first half
-                                + SumGeometricSequence(4, 4, length)                            //calculating second half
+            totalNumOfTasks = 3 * SumGeometricSequence(4, 4, power - length) * 100                    //calculating first half
+                                + SumGeometricSequence(4, 4, length) * 100                            //calculating second half
                                 + (int)Math.Pow(2, power * 2)                                   //multiplication of mid results
                                 + wfa.Resolution.Height * wfa.Resolution.Width;       //building the image
 
@@ -114,18 +113,18 @@ namespace WFA_Lib
         private static (List<MidResult>, List<MidResult>, List<MidResult>, List<MidResult>) CalculateMidResults(WFA wfa, int power, int length)
         {
             MyVector initialDistribution = wfa.InitialDistribution * wfa.TransitionMatrices[2];
-            var task1 = new Task<List<MidResult>>(() => CalculateFirstHalf(initialDistribution, wfa.TransitionMatrices, power - length));
+            var task1 = new Task<List<MidResult>>(() => CalculateMidResults(initialDistribution, wfa.TransitionMatrices, power - length, true));
             task1.Start();
 
             initialDistribution = wfa.InitialDistribution * wfa.TransitionMatrices[0];
-            var task2 = new Task<List<MidResult>>(() => CalculateFirstHalf(initialDistribution, wfa.TransitionMatrices, power - length));
+            var task2 = new Task<List<MidResult>>(() => CalculateMidResults(initialDistribution, wfa.TransitionMatrices, power - length, true));
             task2.Start();
 
             initialDistribution = wfa.InitialDistribution * wfa.TransitionMatrices[1];
-            var task3 = new Task<List<MidResult>>(() => CalculateFirstHalf(initialDistribution, wfa.TransitionMatrices, power - length));
+            var task3 = new Task<List<MidResult>>(() => CalculateMidResults(initialDistribution, wfa.TransitionMatrices, power - length, true));
             task3.Start();
 
-            var taskSecondHalf = new Task<List<MidResult>>(() => CalculateSecondHalf(wfa, length));
+            var taskSecondHalf = new Task<List<MidResult>>(() => CalculateMidResults(wfa.FinalDistribution, wfa.TransitionMatrices, length, false));
             taskSecondHalf.Start();
 
             var tasks = new Task[] { task1, task2, task3, taskSecondHalf };
@@ -141,10 +140,10 @@ namespace WFA_Lib
         /// <param name="transitionMatrices"></param>
         /// <param name="length">Lengt of the words</param>
         /// <returns></returns>
-        private static List<MidResult> CalculateFirstHalf(MyVector initialDistribution, List<MyMatrix> transitionMatrices, int length)
+        private static List<MidResult> CalculateMidResults(MyVector distribution, List<MyMatrix> transitionMatrices, int length, bool calculatingFirstHalf)
         {
-            List<MidResult> result = new List<MidResult>();
-            Stack<MidResult> stack = new Stack<MidResult>();
+            List<MidResult> firsts = new List<MidResult>();
+            List<MidResult> results = new List<MidResult>();
             MyVector v;
             Word w;
             MidResult midRes;
@@ -152,82 +151,74 @@ namespace WFA_Lib
             //Initialization for the first quadrants
             foreach (int i in Enum.GetValues(typeof(Alphabet)))
             {
-                v = initialDistribution * transitionMatrices[i];
+                v = calculatingFirstHalf ? distribution * transitionMatrices[i] : transitionMatrices[i] * distribution;
                 w = new Word((Alphabet)i);
                 midRes = new MidResult(v, w);
-                stack.Push(midRes);
+                firsts.Add(midRes);
             }
 
-            while (stack.TryPop(out midRes))
+            /*/
+            var tasks = new Task<List<MidResult>>[firsts.Count];
+            for (int i = 0; i < firsts.Count; i++)
             {
-                if (midRes.Address.Length == length)
-                    result.Add(midRes);
-                else
-                {
-                    foreach (int i in Enum.GetValues(typeof(Alphabet)))
-                    {
-                        v = midRes.Value * transitionMatrices[i];
-                        w = midRes.Address + (Alphabet)i;
-                        stack.Push(new MidResult(v, w));
-                    }
-                }
+                int index = i;
+                var task = new Task<List<MidResult>>(() => Calculate(firsts[index], length, transitionMatrices, calculatingFirstHalf));
+                task.Start();
+                tasks[index] = task;
             }
 
-            if (progressBar != null)
+            Task.WaitAll(tasks);
+
+            foreach (var t in tasks)
             {
-                lock (progressBar)
-                {
-                    totalNumOfTasksEnded += SumGeometricSequence(4, 4, length);
-                    progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
-                }
+                results.AddRange(t.Result);
             }
-            return result;
+            /*/
+
+            foreach (var first in firsts)
+            {
+                var result = Calculate(first, length, transitionMatrices, calculatingFirstHalf);
+                results.AddRange(result);
+            }
+            /**/
+
+            return results;
+
         }
 
-        /// <summary>
-        /// Calculate for all words w A_wF
-        /// </summary>
-        /// <param name="wfa">The automaton</param>
-        /// <param name="length">lengt of the words</param>
-        /// <returns>List of all words of length size with corresponding vector</returns>
-        static private List<MidResult> CalculateSecondHalf(WFA wfa, int length)
+        private static List<MidResult> Calculate(MidResult first, int length, List<MyMatrix> transitionMatrices, bool calculatingFirstHalf)
         {
+            List<MidResult> result = new List<MidResult>();
             Stack<MidResult> stack = new Stack<MidResult>();
             MyVector v;
             Word w;
             MidResult midRes;
+            int numFinishedTasks = 0;
 
-            //Initialization
-            foreach (int i in Enum.GetValues(typeof(Alphabet)))
-            {
-                v = wfa.TransitionMatrices[i] * wfa.FinalDistribution;
-                w = new Word((Alphabet)i);
-                midRes = new MidResult(v, w);
-                stack.Push(midRes);
-            }
-
-            List<MidResult> result = new List<MidResult>();
+            stack.Push(first);
 
             while (stack.TryPop(out midRes))
             {
                 if (midRes.Address.Length == length)
+                {
                     result.Add(midRes);
+                    numFinishedTasks++;
+
+                    if (numFinishedTasks == SumGeometricSequence(4, 4, length) / 16)
+                    {
+                        UpdateProgressBar(numFinishedTasks * 100);
+                        numFinishedTasks = 0;
+                    }
+                }
+
                 else
                 {
                     foreach (int i in Enum.GetValues(typeof(Alphabet)))
                     {
-                        v = wfa.TransitionMatrices[i] * midRes.Value;
-                        w = (Alphabet)i + midRes.Address;
+                        v = calculatingFirstHalf ? (midRes.Value * transitionMatrices[i]) : (transitionMatrices[i] * midRes.Value);
+                        w = calculatingFirstHalf ? (midRes.Address + (Alphabet)i) : ((Alphabet)i + midRes.Address);
                         stack.Push(new MidResult(v, w));
                     }
-                }
-            }
-            if (progressBar != null)
-            {
-                lock (progressBar)
-                {
-                    totalNumOfTasksEnded += SumGeometricSequence(4, 4, length);
-                    progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
                 }
             }
 
@@ -275,7 +266,7 @@ namespace WFA_Lib
             List<List<MidResult>> firstHalf = new List<List<MidResult>>();
 
             // Calculate 
-            List<MidResult> secondHalf = CalculateSecondHalf(wfa, length);
+            List<MidResult> secondHalf = CalculateMidResults(wfa.FinalDistribution, wfa.TransitionMatrices, length, false);
             List<double[,]> results = new List<double[,]>();
 
             for (int i = 0; i < initDist.Count; i++)
@@ -311,21 +302,12 @@ namespace WFA_Lib
 
                     image[coor.X, coor.Y] = value;
                 }
-            });
 
-            if (progressBar != null)
-            {
-                lock (progressBar)
-                {
-                    totalNumOfTasksEnded += (int)Math.Pow(size, 2);
-                    progressBar.Report(totalNumOfTasksEnded / totalNumOfTasks);
-                }
-            }
+                UpdateProgressBar(firstHalf.Count);
+            });
 
             return image;
         }
-
-
 
         private static List<MidResult> CalculateFirstHalfForBase(WFA wfa, int size)
         {
@@ -362,6 +344,19 @@ namespace WFA_Lib
             }
 
             return result;
+        }
+
+        private static void UpdateProgressBar(int finishedTasksIncrease)
+        {
+
+            if (progressBar != null)
+            {
+                lock (progressBar)
+                {
+                    totalNumOfTasksFinished += finishedTasksIncrease;
+                    progressBar.Report((double)totalNumOfTasksFinished / totalNumOfTasks);
+                }
+            }
         }
     }
 }

@@ -138,18 +138,16 @@ namespace WFA_Lib
                     statesUsed.Add(state.ID);
                     imageVector = stateImg.ToVector();
 
-                    value = RatioOfTwoVectors(b, imageVector);      //we want to check, if there exists real number such that value*imageVector = b
-
                     if (indexer < b.Height)
                     {
+                        value = RatioOfTwoVectors(b, imageVector);      //we want to check, if there exists real number such that value*imageVector = b
+
                         if (!double.IsNaN(value) && value != 0)
                         {
-                            if (SquareError(imageVector * value, b) == 0)
-                            {
-                                transitions.Add(new Transition(parentState.ID, state.ID, label, value));
-                                cost = 1;
-                                return transitions;
-                            }
+                            transitions.Add(new Transition(parentState.ID, state.ID, label, value));
+                            cost = 1;
+                            return transitions;
+
                         }
                         indexer++;
                     }
@@ -199,7 +197,7 @@ namespace WFA_Lib
                     return double.NaN;
                 else
                     newRatio = v1.Values[i] / v2.Values[i];
-                
+
                 if (ratio == 0)
                     ratio = newRatio;
 
