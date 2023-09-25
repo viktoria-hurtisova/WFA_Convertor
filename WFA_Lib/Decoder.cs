@@ -32,8 +32,6 @@ namespace WFA_Lib
             // initialization of WFA, loading transitions from file
             WFA wfa = new WFA(inputWFAFile);
 
-            Bitmap image = ToImage(wfaClass, depth);
-
             Bitmap image = ToImage(wfa, depth);
             image.Save(imageName);
 
