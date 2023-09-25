@@ -78,7 +78,6 @@ namespace WFA_Convertor
         }
         static void Start(string[] args)
         {
-            
             if (args.Length == 0)
                 {
                 Console.WriteLine("The program needs input parameters.");
@@ -86,8 +85,6 @@ namespace WFA_Convertor
 
             string action = args[0];
             string input = args[1];
-
-
 
             if (action == "decode")
             {
@@ -112,6 +109,8 @@ namespace WFA_Convertor
                     Console.WriteLine(ex.Message);
                     return;
                 }
+                progressBar.Dispose();
+
             }
             else if (action == "encode")
             {
@@ -133,6 +132,7 @@ namespace WFA_Convertor
                     Console.WriteLine(ex.Message);
                     return;
                 }
+                progressBar.Dispose();
             }
             else
             {

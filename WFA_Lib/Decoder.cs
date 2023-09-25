@@ -23,7 +23,7 @@ namespace WFA_Lib
     public static class Decoder
     {
         private static ProgressBar progressBar;
-        private static int totalNumOfTasks = 0;
+        private static int totalNumOfTasks;
         private static int totalNumOfTasksFinished = 0;
         static public void WFAToImage(string inputWFAFile, string imageName, int depth, ProgressBar pB)
         {
@@ -195,8 +195,8 @@ namespace WFA_Lib
             /**/
 
             return results;
-            
-                }
+
+        }
 
         private static List<MidResult> Calculate(MidResult first, int length, List<MyMatrix> transitionMatrices, bool calculatingFirstHalf)
         {
@@ -212,7 +212,7 @@ namespace WFA_Lib
             while (stack.TryPop(out midRes))
             {
                 if (midRes.Address.Length == length)
-                { 
+                {
                     result.Add(midRes);
                     numFinishedTasks++;
 
