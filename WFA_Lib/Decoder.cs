@@ -169,6 +169,7 @@ namespace WFA_Lib
                 firsts.Add(midRes);
             }
 
+            /*/
             var tasks = new Task<List<MidResult>>[firsts.Count];
             for (int i = 0; i < firsts.Count; i++)
             {
@@ -184,6 +185,15 @@ namespace WFA_Lib
             {
                 results.AddRange(t.Result);
             }
+            /*/
+
+            foreach (var first in firsts)
+            {
+                var result = Calculate(first, length, transitionMatrices, calculatingFirstHalf);
+                results.AddRange(result);
+            }
+            /**/
+
             return results;
             
                 }
@@ -206,7 +216,7 @@ namespace WFA_Lib
                     result.Add(midRes);
                     numFinishedTasks++;
 
-                    if (numFinishedTasks == SumGeometricSequence(4, 4, length) / 4)
+                    if (numFinishedTasks == SumGeometricSequence(4, 4, length) / 16)
                     {
                         UpdateProgressBar(numFinishedTasks * 100);
                         numFinishedTasks = 0;
@@ -311,8 +321,6 @@ namespace WFA_Lib
             return image;
         }
 
-
-
         private static List<MidResult> CalculateFirstHalfForBase(WFA wfa, int size)
         {
             List<MidResult> result = new List<MidResult>();
@@ -358,7 +366,7 @@ namespace WFA_Lib
                 lock (progressBar)
                 {
                     totalNumOfTasksFinished += finishedTasksIncrease;
-                    progressBar.Report(totalNumOfTasksFinished / totalNumOfTasks);
+                    progressBar.Report((double)totalNumOfTasksFinished / totalNumOfTasks);
                 }
             }
         }
