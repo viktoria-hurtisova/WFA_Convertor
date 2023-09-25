@@ -1,5 +1,9 @@
 # WFA Convertor
 
+## About
+
+This project is only as a "Proof of concept" for the Weighted Finite Automata (WFA) Compression. This project only implements conversion of pictures to WFA and back. It is not very fast, so please do not use pictures bigger than 256x256 pixels.
+
 ## Repository Contents
 
 - WFA_Lib - C# library for data structures and algorithms
@@ -8,7 +12,7 @@
 
 ## Installation
 
-Run the installation package TODO included in the attachment TODO directory to install WFA\_Convertor on your computer. Follow the installer's instructions. Run the WFA\_COnvertor.exe to launch WFA\_Convertor after the installation is finished.
+Run the installation package to install WFA\_Convertor on your computer. Follow the installer's instructions. Run the WFA\_COnvertor.exe to launch WFA\_Convertor after the installation is finished.
 
 ## Usage
 
