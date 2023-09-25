@@ -76,9 +76,7 @@ namespace WFA_Convertor
 
             return true;
         }
-
-
-        static void Main(string[] args)
+        static void Start(string[] args)
         {
             
             if (args.Length == 0)
@@ -141,6 +139,10 @@ namespace WFA_Convertor
                 Console.WriteLine($"{action} is not a correct command.");
                 return;
             }
+        }
+        static void Main(string[] args)
+        {
+            Start(args);
         }
     }
 }
