@@ -2,17 +2,22 @@
 
 ## About
 
-This project is only a "Proof of concept" for the Weighted Finite Automata (WFA) Compression. This project only implements the conversion of pictures to WFA and back. It represents the images exactly, therefore, please do not use images bigger than 256x256 pixels.
+This project is only a "Proof of Concept" for my bachelor thesis **Representing Images by Weighted Finite Automata**. This project only implements the conversion of pictures to WFA and back. It represents the images exactly, therefore, please do not use big images.
 
 ## Repository Contents
 
-- WFA_Lib - C# library for data structures and algorithms
-- WFA_Convertor - C# application WFA_Convertor
-- WFA_Convertor.sln - Visual Studio solution file
+- `WFA_Lib` - C# library for data structures and algorithms
+- `WFA_Convertor` - C# application WFA_Convertor
+- `WFA_Convertor.sln` - Visual Studio solution file
+
+## Dependencies
+
+The main library is using the **Extreme Optimization Numerical Libraries** library. To use this software, you may purchase a license online from [here](https://www.extremeoptimization.com/howtobuy). To obtain a trial key, go [here](https://www.extremeoptimization.com/trialkey) and follow the instructions there.
 
 ## Installation
 
-Run the installation package to install WFA\_Convertor on your computer. Follow the installer's instructions. Run the WFA\_COnvertor.exe to launch WFA\_Convertor after the installation is finished.
+The installation package is no longer updated with the new commits. The application works, but terribly.
+Run the installation package to install `WFA_Convertor` on your computer. Follow the installer's instructions. Run the `WFA_Convertor.exe` to launch `WFA_Convertor` after the installation is finished.
 
 ## Usage
 
@@ -28,7 +33,7 @@ The encoding algorithm will take an image given by the user and convert it into 
 
 The parameters for encoding an image must be in the following format:
 
-```
+```bash
 encode <image> 
 ```
 
@@ -39,7 +44,7 @@ where
 
 For example, the correct input for encoding is
 
-```
+```bash
 encode C:\Users\MyName\Desktop\pictures\garden.png
 ```
 
@@ -58,7 +63,7 @@ The decoding algorithm generates an image from an input WFA.
 
 The parameters for decoding an image must be in the following format:
 
-```
+```bash
 decode <WFAFile> [depth]
 ```
 
@@ -67,11 +72,12 @@ where
 - The keyword `decode` indicates, that you have chosen the decoding mode,
 - `<WFAFile>` is a path to the WFA file. The path can be either absolute or relative to the application's location in the file system,
 - `[depth]` is an optional parameter. The parameter indicates how deep into the WFA the algorithm goes. If the parameter is not supplied, the decoder uses the native resolution of the encoded image.
-	
-	The parameter must be in the format `d=<value>`. The `<value>` must be a positive integer number determining the chosen depth. If the value has a wrong format or is negative, the program will write an error message.
+
+The parameter must be in the format `d=<value>`. The `<value>` must be a positive integer number determining the chosen depth. If the value has a wrong format or is negative, the program will write an error message.
 
 For example, the correct input for decoding is
- ```
+
+ ```bash
  decode C:\Users\MyName\Desktop\pictures\garden.wfa d=8
  ```
 
