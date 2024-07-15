@@ -2,7 +2,7 @@
 
 ## About
 
-This project is only a "Proof of Concept" for my bachelor thesis **Representing Images by Weighted Finite Automata**. This project only implements the conversion of pictures to WFA and back. It represents the images exactly, therefore, please do not use big images.
+This project is only a "Proof of Concept" for my bachelor thesis [Representing Images by Weighted Finite Automata](https://dspace.cuni.cz/handle/20.500.11956/175513). This project only implements the conversion of pictures to WFA and back. It represents the images exactly, therefore, please do not use big images.
 
 ## Repository Contents
 
